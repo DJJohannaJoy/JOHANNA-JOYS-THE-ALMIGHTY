@@ -1,9 +1,10 @@
+from test_paths import COMPONENTS
 from pathlib import Path
 import sys,json,uuid,shutil,wave
 from unittest.mock import patch
 from contextlib import contextmanager
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import ai_method as A,ai_adaptive as D,scanner_core as C
+import ai_method as A,ai_adaptive as D,audio_core as C
 folder=Path(__file__).resolve().parent/('adaptive-fixture-'+uuid.uuid4().hex);folder.mkdir()
 @contextmanager
 def scratch(**kwargs):
@@ -15,7 +16,7 @@ try:
     mix=folder/'set.wav'
     with wave.open(str(mix),'wb') as stream:stream.setnchannels(1);stream.setsampwidth(2);stream.setframerate(11025);stream.writeframes(b'\0\0'*11025*100)
     reference=folder/'Artist - Song Remix.wav';reference.write_bytes(b'local reference');db=folder/'db.pklz';db.write_bytes(b'fixture')
-    cfg={'ffmpeg_dir':r'C:\Users\JOY\Desktop\SET SCANNER\tools\ffmpeg','ai_web_lookup':False}
+    cfg={'ffmpeg_dir':str(COMPONENTS/'tools/ffmpeg'),'ai_web_lookup':False}
     calls=[];judged=[]
     def match(parts,factor,kind,directory,env,cancel,log):
         calls.append((factor,kind));assert parts[0].is_file()

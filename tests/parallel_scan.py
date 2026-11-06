@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
 import scan_jobs as J
-import scanner_core as C
+import audio_core as C
 import online_requests as O
 
 barrier=threading.Barrier(3);events=[];cancel=threading.Event()

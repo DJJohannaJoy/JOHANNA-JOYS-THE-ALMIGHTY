@@ -2,7 +2,8 @@
 import re
 from tkinter import ttk
 
-VERSION_LABEL='Version 1.13 - EMBER'
+APP_NAME="JOHANNA JOY'S THE ALMIGHTY"
+VERSION_LABEL='Version 1.14 - EMBER'
 TEXT={
 'Passende Dateien:':'Matching files:','DATEI ÜBERNEHMEN':'USE FILE','MUSIKORDNER ABGLEICHEN':'MATCH MUSIC FOLDER',
 'ZUORDNUNG LÖSCHEN':'CLEAR ASSIGNMENT','Musikordner zum Abgleichen auswählen':'Choose a music folder to match',

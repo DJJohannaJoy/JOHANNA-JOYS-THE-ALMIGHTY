@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""FIRST SPARK · genuine Tkinter controls with custom crimson skin.
+"""EMBER · genuine Tkinter controls with custom crimson skin.
 
 No pre-rendered fake screenshot is used as an interface: every button, status,
 progress widget, file input and results table below is interactive.
@@ -12,7 +12,7 @@ from PIL import Image, ImageTk, ImageDraw, ImageFilter
 from functools import lru_cache
 import math
 import json,uuid
-from ui_text import tr,VERSION_LABEL
+from ui_text import tr,VERSION_LABEL,APP_NAME
 
 BASE = '#090A0B'
 PANEL = '#131415'
@@ -547,10 +547,10 @@ def resizable_columns(table,app,view,on_change):
 
 
 def build_ui(a):
-    """Construct the approved three-column/header + full-width scanner UI."""
+    """Construct the approved three-column/header + full-width almighty UI."""
     root=a.root
     root.configure(bg=BASE)
-    root.title("Johanna Joy's THE ALMIGHTY · "+VERSION_LABEL)
+    root.title(APP_NAME+" · "+VERSION_LABEL)
     a._app_icon=ImageTk.PhotoImage(Image.open(a.C_APP/'assets/almighty_icon.png'))
     root.iconphoto(True,a._app_icon)
     if __import__('os').name=='nt':
@@ -770,7 +770,7 @@ def build_ui(a):
     a.result_table.bind('<Double-1>',a.show_hit_detail)
     resizable_columns(a.result_table,a,'results',lambda:a._render_hits([]) if getattr(a,'_hit_rows',None) else None)
     # Empty rows are visual grid guides, never fabricated recognitions;
-    # scanner._render_hits clears them before showing actual results.
+    # almighty._render_hits clears them before showing actual results.
     a.result_table.tag_configure('empty0',background='#101112')
     a.result_table.tag_configure('empty1',background='#151617')
     for i in range(6):a.result_table.insert('','end',values=('','','','','','',''),tags=('empty'+str(i%2),))

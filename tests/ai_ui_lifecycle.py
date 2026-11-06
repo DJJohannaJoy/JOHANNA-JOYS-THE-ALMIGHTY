@@ -2,7 +2,7 @@ from pathlib import Path
 import sys,json,uuid,shutil,threading
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner as S,ai_method as A,local_ai as L
+import almighty as S,ai_method as A,local_ai as L
 folder=Path(__file__).resolve().parent/('ai-ui-fixture-'+uuid.uuid4().hex);folder.mkdir()
 release=threading.Event();started=threading.Event()
 def judge(self,rows,provider,model):

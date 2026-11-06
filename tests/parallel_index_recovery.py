@@ -3,7 +3,7 @@ from pathlib import Path
 import json,sys,threading,uuid,shutil,time,os
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner_core as C
+import audio_core as C
 
 parent=Path(__file__).resolve().parent
 scratch=parent/('index-fixture-'+uuid.uuid4().hex);scratch.mkdir()

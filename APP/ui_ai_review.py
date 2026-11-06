@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 import webbrowser
 from ui_workspace import shell
-from ui_first_spark import BloodButton,PANEL,FIELD,TEXT,MUTE,HOT
+from ui_theme import BloodButton,PANEL,FIELD,TEXT,MUTE,HOT
 import ai_method as A
 
 def show_findings(app):

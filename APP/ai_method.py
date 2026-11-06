@@ -6,7 +6,7 @@ from __future__ import annotations
 import hashlib,json,re,threading,time,uuid,sys,tempfile,shutil,urllib.request,urllib.parse,urllib.error
 from pathlib import Path
 from difflib import SequenceMatcher
-import scanner_core as C
+import audio_core as C
 import track_results as R
 import local_ai as L
 import set_library as SL
@@ -309,7 +309,7 @@ class Audit(AdaptiveReview):
                         links,errors=self.source_lookup(track);sources.extend(links);issues.extend(errors)
                         for evidence in track.get('evidence') or []:
                             url=evidence.get('url','')
-                            if safe_source(url):sources.append({'source_id':digest(url)[:16],'provider':'Scanner-Link (kein unabhängiger Katalog)',
+                            if safe_source(url):sources.append({'source_id':digest(url)[:16],'provider':'Fundstellen-Link (kein unabhängiger Katalog)',
                                                                'title':track['title'],'url':url})
                     self.emit('case_progress',case_id=case['case_id'],done=1,total=steps,detail=case['tracks'][0]['title']+' · Remix-Fingerprints testen')
                     audio=self.audio_check(case,candidates)

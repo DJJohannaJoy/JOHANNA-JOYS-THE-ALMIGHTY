@@ -4,10 +4,10 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
-[assembly: AssemblyTitle("THE ALMIGHTY")]
-[assembly: AssemblyProduct("Johanna Joy's THE ALMIGHTY")]
-[assembly: AssemblyVersion("1.13.0.0")]
-[assembly: AssemblyFileVersion("1.13.0.0")]
+[assembly: AssemblyTitle("JOHANNA JOY'S THE ALMIGHTY")]
+[assembly: AssemblyProduct("JOHANNA JOY'S THE ALMIGHTY")]
+[assembly: AssemblyVersion("1.14.0.0")]
+[assembly: AssemblyFileVersion("1.14.0.0")]
 internal static class AlmightyLauncher {
     private static readonly object LogLock = new object();
     private static string Quote(string value) { return "\"" + value.Replace("\"", "\\\"") + "\""; }
@@ -17,17 +17,16 @@ internal static class AlmightyLauncher {
             string home = AppDomain.CurrentDomain.BaseDirectory;
             string app = Path.Combine(home,"APP"), runtime = Path.Combine(home,"runtime");
             string python = Path.Combine(runtime,"python.exe");
-            if (!File.Exists(python)) throw new Exception("Bitte das gesamte ZIP entpacken. Der Ordner runtime muss neben THE_ALMIGHTY.exe bleiben.");
+            if (!File.Exists(python)) throw new Exception("Bitte das gesamte ZIP entpacken. APP und runtime müssen neben der Programm-EXE bleiben.");
             string data = Environment.GetEnvironmentVariable("ALMIGHTY_DATA_ROOT");
             if (String.IsNullOrEmpty(data)) {
-                string prior = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),"SET SCANNER");
-                data = File.Exists(Path.Combine(prior,"einstellungen.json")) ? prior : app;
+                data = Path.Combine(home,"Daten");
             }
             string logs = Path.Combine(data,"Protokolle");Directory.CreateDirectory(logs);
             string log = Path.Combine(logs,"PROGRAMM_START.txt");
             ProcessStartInfo info = new ProcessStartInfo(python);
             info.WorkingDirectory = app;info.UseShellExecute = false;info.CreateNoWindow = true;
-            info.Arguments = "-X utf8 " + Quote(Path.Combine(app,check ? "portable_check.py" : "scanner.py"));
+            info.Arguments = "-X utf8 " + Quote(Path.Combine(app,check ? "verify_installation.py" : "almighty.py"));
             if (check) info.Arguments += " " + Quote(Path.GetFullPath(args[1]));
             info.EnvironmentVariables.Remove("PYTHONPATH");info.EnvironmentVariables.Remove("PYTHONHOME");
             info.EnvironmentVariables["PYTHONNOUSERSITE"]="1";
@@ -45,11 +44,11 @@ internal static class AlmightyLauncher {
                 };
                 process.ErrorDataReceived+=record;process.OutputDataReceived+=record;
                 process.Start();process.BeginErrorReadLine();process.BeginOutputReadLine();process.WaitForExit();
-                if(process.ExitCode!=0 && !check) MessageBox.Show("Das Programm wurde mit einem Fehler beendet. Details: "+log,"THE ALMIGHTY",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                if(process.ExitCode!=0 && !check) MessageBox.Show("Das Programm wurde mit einem Fehler beendet. Details: "+log,"JOHANNA JOY'S THE ALMIGHTY",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return process.ExitCode;
             }
         } catch(Exception e) {
-            if(!check) MessageBox.Show(e.Message,"THE ALMIGHTY",MessageBoxButtons.OK,MessageBoxIcon.Error);
+            if(!check) MessageBox.Show(e.Message,"JOHANNA JOY'S THE ALMIGHTY",MessageBoxButtons.OK,MessageBoxIcon.Error);
             return 1;
         }
     }

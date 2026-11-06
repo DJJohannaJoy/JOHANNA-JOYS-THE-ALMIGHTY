@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
-"""SET SCANNER first-start bootstrap. Everything ends up INSIDE SET SCANNER.
+"""JOHANNA JOY\'S THE ALMIGHTY first-start bootstrap. Everything ends up INSIDE JOHANNA JOY\'S THE ALMIGHTY.
 No user-selected dependency folders, no system PATH edits, no API keys.
 First run requires Internet for upstream program source, FFmpeg and Python wheels.
 """
@@ -22,9 +22,9 @@ FFMPEG = TOOLS/'ffmpeg'
 NODE = TOOLS/'node'
 AUD = APP/'engine'/'audfprint'
 MIX = APP/'engine'/'mix-id'
-RUNTIME = APP/'.venv_py312'
-PY = RUNTIME/'Scripts'/'python.exe' if os.name == 'nt' else RUNTIME/'bin'/'python'
-LOGS = APP/'Protokolle'
+RUNTIME = APP.parent/'runtime'
+PY = RUNTIME/'python.exe' if os.name == 'nt' else RUNTIME/'bin'/'python'
+LOGS = Path(os.environ.get('ALMIGHTY_DATA_ROOT') or APP.parent/'Daten')/'Protokolle'
 LOGS.mkdir(parents=True,exist_ok=True)
 LOGFILE = LOGS/'EINRICHTUNG.txt'
 REQUIRED_AUD = {'audfprint.py','audfprint_analyze.py','audfprint_match.py',
@@ -42,7 +42,7 @@ def fetch(url: str, output: Path, *, max_mb=450):
     output.parent.mkdir(parents=True, exist_ok=True)
     temp = output.with_suffix(output.suffix+'.downloading')
     if temp.exists(): temp.unlink()
-    req = urllib.request.Request(url, headers={'User-Agent':'SET-SCANNER-Windows/0.71'})
+    req = urllib.request.Request(url, headers={'User-Agent':'Almighty-Windows/1.14'})
     with urllib.request.urlopen(req, timeout=65) as source, temp.open('wb') as sink:
         total=0
         while block:=source.read(1024*1024):
@@ -70,11 +70,11 @@ def zip_member(z: zipfile.ZipFile, endings: list[str]) -> dict[str,str]:
 def audfprint():
     out('[1/4] Offline-Musikerkennung (audfprint)')
     if all((AUD/name).is_file() for name in REQUIRED_AUD):
-        out('  ✓ Vollständig im SET SCANNER vorhanden')
+        out('  ✓ Vollständig im JOHANNA JOY\'S THE ALMIGHTY vorhanden')
         return
     # Official upstream source under permissive MIT License.
     url='https://github.com/dpwe/audfprint/archive/refs/heads/master.zip'
-    with tempfile.TemporaryDirectory(prefix='set_scanner_aud_') as t:
+    with tempfile.TemporaryDirectory(prefix='almighty_aud_') as t:
         file=Path(t)/'audfprint.zip'
         out('  Lade Original-Engine automatisch ins Programmpaket ...')
         fetch(url,file,max_mb=15)
@@ -97,7 +97,7 @@ def audfprint():
 def ffmpeg():
     out('[2/4] FFmpeg und FFprobe')
     if all((FFMPEG/(name+'.exe')).is_file() for name in ('ffmpeg','ffprobe')):
-        out('  ✓ Beide Programme sind im SET SCANNER vorhanden')
+        out('  ✓ Beide Programme sind im JOHANNA JOY\'S THE ALMIGHTY vorhanden')
         return
     # Copy from the existing installed executables without asking the user to locate a folder.
     # This is an optional acceleration; a fresh download works without prior installation.
@@ -114,10 +114,10 @@ def ffmpeg():
             FFMPEG.mkdir(parents=True,exist_ok=True)
             for filename in ('ffmpeg.exe','ffprobe.exe'):
                 shutil.copy2(directory/filename, FFMPEG/filename)
-            out('  ✓ Vorhandenes FFmpeg automatisch in den SET SCANNER übernommen')
+            out('  ✓ Vorhandenes FFmpeg automatisch in den JOHANNA JOY\'S THE ALMIGHTY übernommen')
             return
     out('  Lade FFmpeg (offizielle Windows-Builds) automatisch ...')
-    with tempfile.TemporaryDirectory(prefix='set_scanner_ffmpeg_') as temp:
+    with tempfile.TemporaryDirectory(prefix='almighty_ffmpeg_') as temp:
         archive=Path(temp)/'ffmpeg.zip'
         fetch('https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip', archive, max_mb=400)
         with zipfile.ZipFile(archive) as z:
@@ -145,16 +145,16 @@ def node():
                 shutil.copy2(installed_node, local)
                 shutil.copytree(original_npm_cli.parent.parent, NODE/'node_modules'/'npm',dirs_exist_ok=True)
                 npm=str(NODE/'node_modules'/'npm'/'bin'/'npm-cli.js')
-                out('  ✓ Vorhandenes Node.js + npm automatisch ins SET SCANNER-Verzeichnis kopiert')
+                out('  ✓ Vorhandenes Node.js + npm automatisch ins JOHANNA JOY\'S THE ALMIGHTY-Verzeichnis kopiert')
     if not local.is_file():
         out('  Lade portable Node.js LTS Version automatisch ...')
-        request=urllib.request.Request('https://nodejs.org/dist/index.json',headers={'User-Agent':'SET-SCANNER/0.71'})
+        request=urllib.request.Request('https://nodejs.org/dist/index.json',headers={'User-Agent':'Almighty/1.14'})
         with urllib.request.urlopen(request,timeout=45) as r:
             items=json.loads(r.read(3*1024*1024).decode('utf-8'))
         entry=next((v for v in items if v.get('lts') and 'win-x64-zip' in v.get('files',[])),None)
         if not entry: raise RuntimeError('Keine Windows-x64 LTS-Version bei nodejs.org gefunden.')
         version=entry['version']
-        with tempfile.TemporaryDirectory(prefix='set_scanner_node_') as temp:
+        with tempfile.TemporaryDirectory(prefix='almighty_node_') as temp:
             archive=Path(temp)/'node.zip'
             fetch(f'https://nodejs.org/dist/{version}/node-{version}-win-x64.zip',archive,max_mb=120)
             with zipfile.ZipFile(archive) as z:
@@ -174,7 +174,7 @@ def node():
     if not local.is_file(): raise RuntimeError('Node.exe fehlt nach der Einrichtung.')
     if not (MIX/'cli.mjs').is_file() or not (MIX/'lib'/'audio.mjs').is_file():
         out('  Lade mix-id Originalprojekt automatisch ...')
-        with tempfile.TemporaryDirectory(prefix='set_scanner_mix_') as temp:
+        with tempfile.TemporaryDirectory(prefix='almighty_mix_') as temp:
             archive=Path(temp)/'mixid.zip'
             fetch('https://github.com/skip5this/mix-id/archive/refs/heads/main.zip',archive,max_mb=20)
             with zipfile.ZipFile(archive) as z:
@@ -207,7 +207,7 @@ def node():
         done=subprocess.run(cmd,cwd=MIX,env=env,check=False)
         if done.returncode or not (MIX/'node_modules'/'shazam-api').is_dir():
             raise RuntimeError('npm install für mix-id ist fehlgeschlagen.')
-    out('  ✓ mix-id + Node + npm-Pakete im SET SCANNER vorhanden')
+    out('  ✓ mix-id + Node + npm-Pakete im JOHANNA JOY\'S THE ALMIGHTY vorhanden')
 
 
 def stable_python(path):
@@ -240,19 +240,16 @@ def find_stable_python():
         if located:candidates.append(Path(located))
     for candidate in dict.fromkeys(candidates):
         if candidate.is_file() and stable_python(candidate):return candidate
-    raise RuntimeError('Für den stabilen Scanner wird Python 3.12 benötigt. '
+    raise RuntimeError('Für den stabilen Programmbetrieb wird Python 3.12 benötigt. '
                        'Offizielle Windows-Installation: https://www.python.org/downloads/release/python-31210/ '
-                       'Danach den Scanner erneut starten. Vorhandene Musikdaten bleiben erhalten.')
+                       'Danach das Programm erneut starten. Vorhandene Musikdaten bleiben erhalten.')
 
 
 def libraries():
     out('[4/4] Python-Bibliotheken, lokal im Programmordner')
-    if not PY.is_file():
-        runtime=find_stable_python()
-        out('  Erstelle stabile Python-3.12-Umgebung im Programmordner ...')
-        subprocess.run([str(runtime),'-m','venv',str(RUNTIME)],check=True)
+    if not PY.is_file():raise RuntimeError('Die eigene Python-Laufzeit fehlt. Bitte das vollständige Programmpaket neu entpacken.')
     if not stable_python(PY):
-        raise RuntimeError('Die Scanner-Umgebung ist keine finale Python-3.12-Version. '
+        raise RuntimeError('Die Python-Umgebung ist keine finale Python-3.12-Version. '
                            'Die bisherige Umgebung und Nutzerdaten wurden nicht verändert.')
     # Skip pip entirely if the prior fully working environment already has packages.
     cmd=[str(PY),'-c','import numpy, scipy, docopt, joblib, psutil, shazamio, tkinterdnd2, yt_dlp, PIL']
@@ -288,15 +285,15 @@ def verify():
 
 
 def main():
-    out('=== SET SCANNER v0.71 | VOLLAUTOMATISCHE EINRICHTUNG ===')
-    out('Alle Programmbestandteile werden ausschließlich in SET SCANNER gespeichert.')
+    out('=== JOHANNA JOY\'S THE ALMIGHTY 1.14 | VOLLAUTOMATISCHE EINRICHTUNG ===')
+    out('Alle Programmbestandteile werden ausschließlich in JOHANNA JOY\'S THE ALMIGHTY gespeichert.')
     out('Beim ersten Start wird Internet benötigt. Spätere Offline-Scans laufen lokal.\n')
     audfprint()
     ffmpeg()
     node()
     libraries()
     verify()
-    out('FERTIG. Ab jetzt bitte nur 2_SET_SCANNER_STARTEN.bat verwenden.')
+    out('FERTIG. Ab jetzt bitte nur die Programm-EXE verwenden.')
 
 if __name__=='__main__':
     try:
@@ -306,7 +303,7 @@ if __name__=='__main__':
                      'libraries':libraries}
             if component not in actions:
                 raise ValueError('Unbekannter Baustein: '+component)
-            out('SET SCANNER | Selbstreparatur: '+component)
+            out('JOHANNA JOY\'S THE ALMIGHTY | Selbstreparatur: '+component)
             actions[component]()
             out('Baustein eingerichtet: '+component)
         else:

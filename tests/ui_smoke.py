@@ -9,8 +9,8 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner as S
-from ui_first_spark import Header, SectionHeading, BrandRail
+import almighty as S
+from ui_theme import Header, SectionHeading, BrandRail
 
 def descendants(widget):
     for child in widget.winfo_children():

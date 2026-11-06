@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Johanna Joy's THE ALMIGHTY · 1.13 EMBER | Windows | Anthrazit + Karminrot.
+"""Johanna Joy's THE ALMIGHTY · 1.14 EMBER | Windows | Anthrazit + Karminrot.
 Prototype, source included. Never overwrites the user's source audio/library.
 """
 from __future__ import annotations
@@ -29,23 +29,23 @@ def relaunch_stable_runtime():
     if os.name!='nt' or (sys.version_info.major,sys.version_info.minor,sys.version_info.releaselevel)==(3,12,'final'):
         return False
     base=Path(__file__).resolve().parent
-    stable=base/'.venv_py312/Scripts/python.exe'
+    stable=base.parent/'runtime/python.exe'
     if not stable.is_file():
-        raise RuntimeError('Bitte 2_SET_SCANNER_STARTEN.bat starten, um Python 3.12 einzurichten.')
+        raise RuntimeError('Bitte das vollständige Programmpaket neu entpacken; die eigene Python-Laufzeit fehlt.')
     flags={'creationflags':subprocess.CREATE_NO_WINDOW}
     check=subprocess.run([str(stable),'-c',"import sys;print((sys.version_info.major,sys.version_info.minor,sys.version_info.releaselevel)==(3,12,'final'))"],
                          capture_output=True,text=True,timeout=10,**flags)
     if check.returncode or check.stdout.strip()!='True':
-        raise RuntimeError('Die lokale Python-3.12-Umgebung ist nicht bereit. Bitte 2_SET_SCANNER_STARTEN.bat starten.')
+        raise RuntimeError('Die lokale Python-3.12-Umgebung ist nicht bereit. Bitte das vollständige Programmpaket neu entpacken.')
     env=os.environ.copy();env.pop('PYTHONPATH',None);env['PYTHONUTF8']='1';env['PYTHONIOENCODING']='utf-8'
-    subprocess.Popen([str(stable),str(base/'scanner.py'),*sys.argv[1:]],cwd=base,env=env,**flags)
+    subprocess.Popen([str(stable),str(base/'almighty.py'),*sys.argv[1:]],cwd=base,env=env,**flags)
     return True
 
 
 if __name__=='__main__' and relaunch_stable_runtime():
     raise SystemExit(0)
 
-import scanner_core as C
+import audio_core as C
 import engine_external as X
 import local_ai as L
 import track_results as R
@@ -57,7 +57,7 @@ messagebox=I.DialogProxy(messagebox)
 filedialog=I.DialogProxy(filedialog)
 import webbrowser
 import importlib
-from ui_first_spark import build_ui, BloodButton, show_completion
+from ui_theme import build_ui, BloodButton, show_completion
 
 try:
     from tkinterdnd2 import TkinterDnD, DND_FILES
@@ -215,7 +215,7 @@ def download_online(url: str, cfg: dict, cancel: threading.Event, log) -> Path:
         raise RuntimeError('Bitte einen YouTube-, SoundCloud- oder Mixcloud-Link eingeben.')
     import yt_dlp  # noqa: F401; installed via requirements.txt
     from uuid import uuid4
-    temp = C.APP/'Downloads_Online'/uuid4().hex[:10]
+    temp = C.USER_ROOT/'Downloads_Online'/uuid4().hex[:10]
     temp.mkdir(parents=True, exist_ok=False)
     template = str(temp/'%(title).100s-%(id)s.%(ext)s')
     env = C.env_with_ffmpeg(cfg['ffmpeg_dir'])
@@ -238,7 +238,7 @@ class AppGUI:
         self.cfg = C.read_config()
         if os.name=='nt':
             import ctypes
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('JohannaJoy.TheAlmighty.Scanner')
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('JohannaJoy.TheAlmighty.App')
         self.root = TkinterDnD.Tk() if DND_OK else tk.Tk()
         self.language=I.Language(self.cfg.get('language','de'));self.root._almighty_language=self.language
         messagebox.language=self.language;filedialog.language=self.language
@@ -324,7 +324,7 @@ class AppGUI:
         return entry
 
     def _ui(self):
-        # Actual, responsive controls; follows the approved FIRST SPARK layout.
+        # Actual, responsive controls; follows the approved EMBER layout.
         build_ui(self)
 
     def _build_settings(self):
@@ -397,7 +397,7 @@ class AppGUI:
             if Path(name).is_file() and Path(name).suffix.lower() in SUPPORTED_SET_EXTS:
                 self.set_path.set(name)
             else:
-                messagebox.showwarning('SET SCANNER','Bitte eine Audiodatei ablegen.')
+                messagebox.showwarning('JOHANNA JOY\'S THE ALMIGHTY','Bitte eine Audiodatei ablegen.')
             self._refresh_readiness()
 
     def _stage(self,key,state,detail=''):
@@ -521,7 +521,7 @@ class AppGUI:
                     if self.current_hits:self.save_current_set(quiet=True)
                     self.progress.set('Abgebrochen' if self.cancel.is_set()
                                       else 'Fehler – siehe Protokoll')
-                    messagebox.showerror('SET SCANNER',str(event[1]))
+                    messagebox.showerror('JOHANNA JOY\'S THE ALMIGHTY',str(event[1]))
         except queue.Empty:
             pass
         self.root.after(100,self._events)
@@ -844,7 +844,7 @@ class AppGUI:
                 self._metadata_jobs.task_done()
                 continue
             try:
-                program="import scanner_core as C,json,sys; C.DATA=C.Path(sys.argv[4]); print(json.dumps(C.track_metadata(sys.argv[1],{'ffmpeg_dir':sys.argv[2]},None if sys.argv[3]=='None' else float(sys.argv[3]))))"
+                program="import audio_core as C,json,sys; C.DATA=C.Path(sys.argv[4]); print(json.dumps(C.track_metadata(sys.argv[1],{'ffmpeg_dir':sys.argv[2]},None if sys.argv[3]=='None' else float(sys.argv[3]))))"
                 code,output=C.run_cmd([sys.executable,'-c',program,source,cfg.get('ffmpeg_dir',''),str(offset),str(C.DATA)],
                                      C.env_with_ffmpeg(cfg.get('ffmpeg_dir','')),cwd=C.APP)
                 if code:raise RuntimeError('Metadatenanalyse fehlgeschlagen')
@@ -911,7 +911,7 @@ class AppGUI:
     def fix_prerequisite(self,key):
         """Actionable red X: one click goes to the actual repair, not an inert label."""
         if self.running:
-            messagebox.showinfo('SET SCANNER','Es läuft bereits ein Vorgang.')
+            messagebox.showinfo('JOHANNA JOY\'S THE ALMIGHTY','Es läuft bereits ein Vorgang.')
             return
         if key=='db':
             # The indexer itself needs the two offline prerequisites.
@@ -939,7 +939,7 @@ class AppGUI:
         label_name={'ffmpeg':'FFmpeg + FFprobe','offline':'Offline-Engine audfprint',
                     'mixid':'mix-id + Node.js','shazam':'ShazamIO'}[key]
         if not messagebox.askyesno('Voraussetzung einrichten',
-               f'{label_name} fehlt.\n\nSoll die Komponente jetzt automatisch in den SET-SCANNER-Ordner installiert werden?\n\nFür den Download wird Internet benötigt.'):
+               f'{label_name} fehlt.\n\nSoll die Komponente jetzt automatisch in den Programmordner installiert werden?\n\nFür den Download wird Internet benötigt.'):
             return
         self.cancel.clear()
         self._running(True)
@@ -949,7 +949,7 @@ class AppGUI:
             try:
                 env=os.environ.copy()
                 env['PIP_NO_CACHE_DIR']='1'
-                args=[sys.executable,str(C.APP/'setup_components.py'),'--component',comp]
+                args=[sys.executable,str(C.APP/'components.py'),'--component',comp]
                 kwargs={'cwd':str(C.APP),'env':env,'stdout':subprocess.PIPE,
                         'stderr':subprocess.STDOUT,'text':True,'errors':'replace'}
                 if os.name=='nt':kwargs['creationflags']=subprocess.CREATE_NO_WINDOW
@@ -1062,7 +1062,7 @@ class AppGUI:
         if self.running:return
         report=Path(self.last_scan['report']) if self.last_scan else None
         if report is None or not report.is_file():
-            messagebox.showwarning('KI-Textprüfung','Bitte zuerst ein gespeichertes Scannergebnis laden.')
+            messagebox.showwarning('KI-Textprüfung','Bitte zuerst ein gespeichertes Ergebnis laden.')
             return
         def job(cfg):
             self._notify('progress','KI','Lokale KI prüft den Textbericht · keine Audioerkennung')
@@ -1120,7 +1120,7 @@ class AppGUI:
         filename=filedialog.askopenfilename(title='Vorhandene audfprint-Datenbank (.pklz)',
                                              filetypes=[('audfprint Datenbank','*.pklz')])
         if not filename:return
-        if C.DB.exists() and not messagebox.askyesno('Import','Vorhandene SET SCANNER-Datenbank ersetzen?'):
+        if C.DB.exists() and not messagebox.askyesno('Import','Vorhandene JOHANNA JOY\'S THE ALMIGHTY-Datenbank ersetzen?'):
             return
         C.DATA.mkdir(parents=True,exist_ok=True)
         shutil.copy2(filename,C.DB)
@@ -1155,7 +1155,7 @@ class AppGUI:
         self._completion_context=None
         try:cfg=self._settings_cfg()
         except Exception as exc:
-            messagebox.showerror('SET SCANNER',str(exc))
+            messagebox.showerror('JOHANNA JOY\'S THE ALMIGHTY',str(exc))
             return
         self.cancel.clear()
         self._running(True)
@@ -1349,7 +1349,7 @@ class AppGUI:
     def _open(self,path):
         path.mkdir(exist_ok=True,parents=True)
         if os.name=='nt':os.startfile(str(path))
-        else:messagebox.showinfo('SET SCANNER',str(path))
+        else:messagebox.showinfo('JOHANNA JOY\'S THE ALMIGHTY',str(path))
 
     def run(self):
         self.root.mainloop()

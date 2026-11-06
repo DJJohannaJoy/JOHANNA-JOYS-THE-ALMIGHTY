@@ -11,7 +11,7 @@ try:
     assert Path(sys.executable).resolve().parent==app.parent/'runtime'
     assert all('AppData/Local/Programs/Python' not in p.replace('\\','/') for p in sys.path)
     checks['isolated_runtime']=True
-    import scanner as S,scanner_core as C,engine_external as X
+    import almighty as S,audio_core as C,engine_external as X
     for name,cmd in [('ffmpeg',[str(app/'tools/ffmpeg/ffmpeg.exe'),'-version']),
                      ('ffprobe',[str(app/'tools/ffmpeg/ffprobe.exe'),'-version']),
                      ('node',[str(app/'tools/node/node.exe'),'--version']),

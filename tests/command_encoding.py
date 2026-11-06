@@ -1,7 +1,7 @@
 from pathlib import Path
 import os,sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner_core as core
+import audio_core as core
 env=os.environ.copy()
 env['PYTHONIOENCODING']='utf-8'
 code,output=core.run_cmd([sys.executable,'-c',"print('Λä🔥')"],env)

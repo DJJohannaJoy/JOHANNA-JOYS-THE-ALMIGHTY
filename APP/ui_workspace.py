@@ -1,12 +1,12 @@
-"""Large results, local set library and live progress, in FIRST SPARK colours."""
+"""Large results, local set library and live progress, in EMBER colours."""
 import tkinter as tk
 from tkinter import ttk
 from tkinter.font import Font
 import time
 import webbrowser
 import set_library as library
-from ui_text import tr,TEXT as UI_TEXT
-from ui_first_spark import BloodButton,GlowProgress,PANEL,FIELD,TEXT,MUTE,HOT,LINE,resizable_columns
+from ui_text import tr,TEXT as UI_TEXT,APP_NAME
+from ui_theme import BloodButton,GlowProgress,PANEL,FIELD,TEXT,MUTE,HOT,LINE,resizable_columns
 
 NAMES={'setup':'Dateien vorbereiten','A':'Schnellscan','B':'Tiefenscan 1','M':'Tiefenscan 2','S':'Shazam','E':'Ergebnis','KI':'KI-Prüfung'}
 PLATFORMS=(('soundeo','Soundeo',100),('soundcloud','SoundCloud',124),('youtube','YouTube',100),('beatport','Beatport',100),('spotify','Spotify',100))
@@ -34,7 +34,7 @@ class NamedProgress(GlowProgress):
         self.create_text(max(20,self.winfo_width())/2,max(10,self.winfo_height())/2,text=tr(self,self.caption),fill=TEXT,font=('Segoe UI',9,'bold'))
 
 def shell(app,title,size):
-    window=tk.Toplevel(app.root);window.title('THE ALMIGHTY · '+title)
+    window=tk.Toplevel(app.root);window.title(APP_NAME+' · '+title)
     window.configure(bg=PANEL);window.geometry(size);window.minsize(800,500)
     if hasattr(app,'_app_icon'):window.iconphoto(False,app._app_icon)
     heading=tk.Label(window,text=title.upper(),bg=PANEL,fg=TEXT,font=('Segoe UI',19,'bold'),anchor='w');heading.pack(fill='x',padx=20,pady=(14,8))

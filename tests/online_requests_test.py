@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner_core as C
+import audio_core as C
 import engine_external as X
 import online_requests as O
 @contextmanager

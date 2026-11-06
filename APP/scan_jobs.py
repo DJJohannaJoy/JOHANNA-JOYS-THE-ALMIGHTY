@@ -7,7 +7,7 @@ from pathlib import Path
 import threading
 import tempfile
 import shutil
-import scanner_core as C
+import audio_core as C
 import engine_external as X
 import online_requests as O
 

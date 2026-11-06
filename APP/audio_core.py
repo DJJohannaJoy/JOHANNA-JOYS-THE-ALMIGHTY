@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""SET SCANNER shared core | Windows | Local audfprint + optional ShazamIO.
+"""JOHANNA JOY\'S THE ALMIGHTY shared core | Windows | Local audfprint + optional ShazamIO.
 The original audio files remain unchanged. This is a prototype, not a certified
 identification system: cross-check every result before publishing tracklists.
 """
@@ -28,7 +28,7 @@ from dataclasses import dataclass, asdict
 from contextlib import contextmanager
 
 APP = Path(__file__).resolve().parent
-USER_ROOT = Path(os.environ.get('ALMIGHTY_DATA_ROOT') or APP)
+USER_ROOT = Path(os.environ.get('ALMIGHTY_DATA_ROOT') or APP.parent/'Daten')
 DATA = USER_ROOT / "Datenbank"
 OUTPUT = USER_ROOT / "Ergebnisse"
 LOGS = USER_ROOT / "Protokolle"
@@ -37,7 +37,7 @@ DB = DATA / "musik.pklz"
 CONFIG_FILE = USER_ROOT / "einstellungen.json"
 EXTS = {".mp3", ".wav", ".flac", ".aiff", ".aif", ".m4a", ".ogg", ".opus", ".wma"}
 AUDIOFILETYPES = "*.mp3 *.wav *.flac *.aiff *.aif *.m4a *.ogg *.opus *.wma"
-DEFAULT_LIBRARY = r"I:\Musik\TECHNO & HARDTECHNO"
+DEFAULT_LIBRARY = str(Path.home()/'Music')
 DEFAULT_AUDIO = Path.home() / "Downloads"
 
 SPEEDS = [1.00, 0.94, 1.06, 0.97, 1.03, 0.90, 1.10,
@@ -114,7 +114,7 @@ def locate_source(cfg: dict) -> Path | None:
 def install_engine(cfg: dict, log) -> Path:
     src = locate_source(cfg)
     if src is None:
-        raise RuntimeError("Offline-Engine fehlt. Bitte 2_SET_SCANNER_STARTEN.bat erneut starten; diese richtet alle Komponenten automatisch ein.")
+        raise RuntimeError("Offline-Engine fehlt. Bitte das vollständige Programmpaket neu entpacken.")
     return src
 
 
@@ -565,7 +565,7 @@ def scan_offline(mix: Path, cfg: dict, duration: float, log, cancel: threading.E
         modes += [("pitch", f) for f in SPEEDS if abs(f - 1.0) > 1e-6]
     all_hits = []
     errors = []
-    with tempfile.TemporaryDirectory(prefix="set-scanner-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="set-almighty-") as tmp:
         directory = Path(tmp)
         for i, (kind, factor) in enumerate(modes, 1):
             if cancel.is_set():
@@ -766,7 +766,7 @@ def consolidate_shazam(observations: list[dict]) -> list[dict]:
 
 
 def final_report(mix: Path, duration: float, offline, weak, shazam, errors, cfg):
-    lines = ["SET SCANNER | TRACKLIST", "="*70, f"Set: {mix}",
+    lines = ["JOHANNA JOY\'S THE ALMIGHTY | TRACKLIST", "="*70, f"Set: {mix}",
              f"Länge: {hhmmss(duration)}", f"Erstellt: {stamp()}",
              f"Offline-Datenbank: {DB}",
              f"Onlinesuche: {'Shazam (inoffiziell)' if cfg['shazam'] else 'deaktiviert'}", "",
@@ -804,221 +804,3 @@ def final_report(mix: Path, duration: float, offline, weak, shazam, errors, cfg)
     report = OUTPUT/filename
     report.write_text("\n".join(lines)+"\n", encoding="utf-8-sig")
     return report
-
-
-class GUI:
-    def __init__(self):
-        for path in (DATA, OUTPUT, LOGS): path.mkdir(parents=True, exist_ok=True)
-        self.cfg = read_config()
-        self.root = tk.Tk()
-        self.root.title("SET SCANNER 0.1  |  Offline → Shazam")
-        self.root.geometry("900x700")
-        self.root.minsize(740, 610)
-        self.root.configure(bg="#131923")
-        self.message_queue = queue.Queue()
-        self.running = False
-        self.cancel = threading.Event()
-        self.library = tk.StringVar(value=self.cfg["library"])
-        self.mix = tk.StringVar(value="")
-        self.shazam = tk.BooleanVar(value=bool(self.cfg["shazam"]))
-        self.pitch = tk.BooleanVar(value=bool(self.cfg["tempo_pitch"]))
-        self.max_shazam = tk.StringVar(value=str(self.cfg["max_shazam"]))
-        self.make_ui()
-        self.root.after(100, self.drain_messages)
-        ff = locate_ffmpeg(self.cfg)
-        if ff:
-            self.cfg["ffmpeg_dir"] = ff
-            self.log(f"FFmpeg gefunden: {ff}")
-        else:
-            self.log("ACHTUNG: FFmpeg nicht gefunden – bitte ffmpeg.exe auswählen.")
-        if DB.is_file():
-            self.log(f"Offline-Datenbank vorhanden: {DB.name}")
-        else:
-            self.log("Erster Start: Bitte Musikdatenbank aufbauen (einmalig).")
-
-    def make_ui(self):
-        style = ttk.Style(self.root)
-        if "clam" in style.theme_names(): style.theme_use("clam")
-        style.configure("TButton", font=("Segoe UI", 10), padding=7)
-        style.configure("TCheckbutton", font=("Segoe UI", 10), background="#131923", foreground="#e6edf5")
-        main = tk.Frame(self.root, bg="#131923", padx=18, pady=18)
-        main.pack(fill="both", expand=True)
-        tk.Label(main, text="SET SCANNER", bg="#131923", fg="#f2f6ff", font=("Segoe UI", 23, "bold")).pack(anchor="w")
-        tk.Label(main, text="1. Eigene Musik offline erkennen    2. Unbekannte Stellen optional mit Shazam prüfen    3. TXT speichern",
-                 bg="#131923", fg="#a7b4c9", font=("Segoe UI", 10)).pack(anchor="w", pady=(0, 16))
-        def chooser_row(title, var, callback):
-            tk.Label(main, text=title, bg="#131923", fg="#d6e0ef", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(7, 3))
-            row = tk.Frame(main, bg="#131923")
-            row.pack(fill="x")
-            tk.Entry(row, textvariable=var, font=("Segoe UI", 10), bg="#222b39", fg="#f4f7fb",
-                     insertbackground="white", relief="flat").pack(side="left", fill="x", expand=True, ipady=7)
-            ttk.Button(row, text="Durchsuchen", command=callback).pack(side="left", padx=(8,0))
-        chooser_row("Musikordner (wird nur beim erstmaligen Indexieren eingelesen)", self.library, self.pick_library)
-        chooser_row("DJ-Set (MP3/WAV/FLAC/AIFF)", self.mix, self.pick_mix)
-        options = tk.Frame(main, bg="#131923")
-        options.pack(fill="x", pady=(12, 4))
-        ttk.Checkbutton(options, text="Shazam für unbekannte Stellen (Internet, ohne API-Key)", variable=self.shazam).pack(anchor="w")
-        ttk.Checkbutton(options, text="Auch DJ-Speed ohne Key-Lock testen (langsamer, gründlicher)", variable=self.pitch).pack(anchor="w", pady=4)
-        tk.Label(options, text="Max. Shazam-Abfragen:", bg="#131923", fg="#a7b4c9").pack(side="left", pady=(3,0))
-        tk.Spinbox(options, from_=0, to=250, width=6, textvariable=self.max_shazam,
-                   bg="#222b39", fg="#ffffff", insertbackground="white").pack(side="left", padx=8, pady=(3,0))
-        buttonrow = tk.Frame(main, bg="#131923")
-        buttonrow.pack(fill="x", pady=(15, 12))
-        self.index_btn = ttk.Button(buttonrow, text="1  MUSIKDATENBANK AUFBAUEN / ERNEUERN", command=self.do_index)
-        self.index_btn.pack(side="left", padx=(0,10))
-        self.scan_btn = ttk.Button(buttonrow, text="2  SET SCANNEN", command=self.do_scan)
-        self.scan_btn.pack(side="left", padx=(0,10))
-        self.cancel_btn = ttk.Button(buttonrow, text="Abbrechen", command=self.cancel_scan, state="disabled")
-        self.cancel_btn.pack(side="left")
-        tk.Label(main, text="Ablauf / Protokoll", bg="#131923", fg="#d6e0ef", font=("Segoe UI", 10, "bold")).pack(anchor="w")
-        self.logbox = scrolledtext.ScrolledText(main, height=15, font=("Consolas", 9),
-                                                bg="#0b1019", fg="#d6e0ef", insertbackground="white", relief="flat", wrap="word")
-        self.logbox.pack(fill="both", expand=True, pady=(6,0))
-        self.logbox.configure(state="disabled")
-        toolrow = tk.Frame(main, bg="#131923")
-        toolrow.pack(fill="x", pady=(8, 0))
-        ttk.Button(toolrow, text="Ergebnisordner öffnen", command=lambda: self.open_folder(OUTPUT)).pack(side="left")
-        ttk.Button(toolrow, text="FFmpeg.exe auswählen", command=self.pick_ffmpeg).pack(side="left", padx=8)
-        ttk.Button(toolrow, text="audfprint-Ordner auswählen", command=self.pick_audfprint).pack(side="left")
-        tk.Label(main, text="Prototyp: Falscherkennungen sind möglich. Große Bibliotheken brauchen viel RAM und Laufzeit.",
-                 bg="#131923", fg="#a7b4c9", font=("Segoe UI", 9)).pack(anchor="w", pady=(8,0))
-
-    def log(self, msg):
-        self.message_queue.put(("log", f"[{stamp()}] {msg}"))
-
-    def drain_messages(self):
-        try:
-            while True:
-                kind, obj = self.message_queue.get_nowait()
-                if kind == "log":
-                    self.logbox.configure(state="normal")
-                    self.logbox.insert("end", str(obj)+"\n")
-                    self.logbox.see("end")
-                    self.logbox.configure(state="disabled")
-                elif kind == "done":
-                    self.set_running(False)
-                    messagebox.showinfo("SET SCANNER", obj)
-                elif kind == "error":
-                    self.set_running(False)
-                    messagebox.showerror("SET SCANNER", obj)
-        except queue.Empty:
-            pass
-        self.root.after(100, self.drain_messages)
-
-    def pick_library(self):
-        selected = filedialog.askdirectory(title="Ordner mit deiner Musik", initialdir=self.library.get() if Path(self.library.get()).is_dir() else str(Path.home()))
-        if selected: self.library.set(selected)
-
-    def pick_mix(self):
-        selected = filedialog.askopenfilename(title="Fertiges DJ-Set auswählen", initialdir=str(DEFAULT_AUDIO),
-                                              filetypes=[("Audio", AUDIOFILETYPES), ("Alle Dateien", "*.*")])
-        if selected: self.mix.set(selected)
-
-    def pick_ffmpeg(self):
-        selected = filedialog.askopenfilename(title="ffmpeg.exe auswählen", filetypes=[("ffmpeg.exe", "ffmpeg.exe"), ("Programme", "*.exe")])
-        if selected:
-            self.cfg["ffmpeg_dir"] = str(Path(selected).parent)
-            save_config(self.cfg)
-            self.log(f"FFmpeg-Ordner gespeichert: {self.cfg['ffmpeg_dir']}")
-
-    def pick_audfprint(self):
-        selected = filedialog.askdirectory(title="Ordner mit audfprint.py auswählen")
-        if selected:
-            self.cfg["audfprint_source"] = selected
-            save_config(self.cfg)
-            self.log(f"audfprint-Quelle: {selected}")
-
-    def open_folder(self, path: Path):
-        if os.name == "nt": os.startfile(str(path))
-        else: messagebox.showinfo("SET SCANNER", f"Ordner: {path}")
-
-    def update_cfg(self):
-        try:
-            limit = int(self.max_shazam.get())
-        except ValueError:
-            raise RuntimeError("Maximale Shazam-Anfragen müssen eine Zahl sein.")
-        self.cfg.update({"library": self.library.get().strip(), "shazam": bool(self.shazam.get()),
-                         "tempo_pitch": bool(self.pitch.get()), "max_shazam": min(max(0,limit),250)})
-        ff = locate_ffmpeg(self.cfg)
-        if not ff:
-            raise RuntimeError("FFmpeg nicht gefunden. Bitte ffmpeg.exe auswählen.")
-        self.cfg["ffmpeg_dir"] = ff
-        save_config(self.cfg)
-
-    def set_running(self, state):
-        self.running = state
-        self.index_btn.configure(state="disabled" if state else "normal")
-        self.scan_btn.configure(state="disabled" if state else "normal")
-        self.cancel_btn.configure(state="normal" if state else "disabled")
-
-    def start(self, fn):
-        if self.running: return
-        try:
-            self.update_cfg()
-        except Exception as exc:
-            messagebox.showerror("SET SCANNER", str(exc))
-            return
-        self.cancel.clear()
-        self.set_running(True)
-        def job():
-            try:
-                msg = fn()
-                self.message_queue.put(("done", msg))
-            except Exception as exc:
-                trace = traceback.format_exc()
-                (LOGS/"letzter_fehler.txt").write_text(trace, encoding="utf-8")
-                self.log(f"FEHLER: {exc}")
-                self.message_queue.put(("error", f"{exc}\n\nDetails: {LOGS/'letzter_fehler.txt'}"))
-        threading.Thread(target=job, daemon=True).start()
-
-    def cancel_scan(self):
-        self.cancel.set()
-        self.log("Abbruch angefordert – laufender Schritt wird beendet.")
-
-    def do_index(self):
-        if DB.is_file() and not messagebox.askyesno("Datenbank erneuern", "Die vorhandene Musikdatenbank wirklich neu erstellen? Das kann dauern."):
-            return
-        self.start(lambda: self._index())
-
-    def _index(self):
-        build_database(self.cfg, self.log, self.cancel)
-        return f"Musikdatenbank erstellt:\n{DB}\n\nJetzt ein DJ-Set auswählen und 'SET SCANNEN' klicken."
-
-    def do_scan(self):
-        mix = Path(self.mix.get().strip())
-        if not mix.is_file():
-            self.pick_mix()
-            mix = Path(self.mix.get().strip())
-        if not mix.is_file():
-            return
-        if not DB.is_file():
-            messagebox.showwarning("Datenbank fehlt", "Bitte zuerst die Musikdatenbank aufbauen.")
-            return
-        self.start(lambda: self._scan(mix))
-
-    def _scan(self, mix: Path):
-        cfg = dict(self.cfg)
-        env = env_with_ffmpeg(cfg["ffmpeg_dir"])
-        duration = get_duration(mix, env)
-        self.log(f"Set: {mix.name} | {hhmmss(duration)}")
-        self.log("Starte lokale Tempoanalyse. Die Geschwindigkeit wird automatisch ausprobiert.")
-        off, weak, errors = scan_offline(mix, cfg, duration, self.log, self.cancel)
-        sha = []
-        if cfg["shazam"] and cfg["max_shazam"]:
-            times = unknown_probe_times(duration, off, cfg["max_shazam"])
-            self.log(f"Shazam-Fallback für {len(times)} unbekannte Zeitpositionen (online, ohne API-Key)")
-            found, errs = asyncio.run(shazam_probes(mix, times, cfg, self.log, self.cancel))
-            sha.extend(found)
-            errors.extend(errs)
-        else:
-            self.log("Shazam-Fallback deaktiviert.")
-        report = final_report(mix, duration, off, weak, sha, errors, cfg)
-        self.log(f"FERTIG. TXT gespeichert: {report}")
-        return f"Scan abgeschlossen!\n\nOffline bestätigt: {len(off)}\nShazam-Beobachtungen: {len(sha)}\n\nTXT: {report}"
-
-    def run(self):
-        self.root.mainloop()
-
-
-if __name__ == "__main__":
-    GUI().run()

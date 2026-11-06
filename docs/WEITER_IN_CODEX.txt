@@ -1,7 +1,0 @@
-CODEX — CONTINUE THIS PROJECT, DO NOT START OVER
-
-Please read AGENTS.md and docs/DESIGN_TARGET.md first. Work in APP/scanner.py and APP/ui_first_spark.py, preserving scanner pipeline and installers. The user's accepted design reference is design/01_MASTER_MOCKUP_FIRST_SPARK.png, NOT the current live screenshot design/04_IST_ZUSTAND_ECHTES_FENSTER.png.
-
-Latest user clarification (05.11.2026): KEEP the dark metallic upper rail and its lowered/sloping red upper contour. Match the background to that contour: continue the brand texture ABOVE the edge and clip the metallic surface BELOW it, with no rectangular seam. Remove only the SET SCANNER / OFFLINE / MIX-ID / SHAZAM labels and the three red slashes. Preserve the textured HIER REINZIEHEN area. Keep the version in the full-width banner and the gear inset 40px and vertically centred.
-
-Implement, run tests, show screenshots of the REAL rendered GUI, compare to reference until the design differences are small, and package without losing the existing music database or results. No invented successful recognition, no API claims.

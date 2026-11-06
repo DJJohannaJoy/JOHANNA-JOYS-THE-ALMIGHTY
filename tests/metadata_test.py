@@ -1,11 +1,12 @@
 """Offline fixtures for format, BPM tags, estimation, cache and online provenance."""
+from test_paths import COMPONENTS
 from pathlib import Path
 import sys,uuid,shutil,json,threading,time,subprocess,wave
 from unittest.mock import patch
 import numpy as np
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner_core as C
-import scanner as S
+import audio_core as C
+import almighty as S
 
 root=Path(__file__).resolve().parent
 scratch=root/('metadata-fixture-'+uuid.uuid4().hex);scratch.mkdir()
@@ -57,7 +58,7 @@ try:
         audio[start:start+n]=np.exp(-np.arange(n)/90)*np.sin(2*np.pi*150*np.arange(n)/sr)
     with wave.open(str(known),'wb') as f:
         f.setnchannels(1);f.setsampwidth(2);f.setframerate(sr);f.writeframes((audio*30000).astype('<i2').tobytes())
-    desktop=Path.home()/'Desktop/SET SCANNER'
+    desktop=COMPONENTS
     cfg={'ffmpeg_dir':str(desktop/'tools/ffmpeg')}
     actual=C.track_metadata(known,cfg)
     assert actual['audio_format']=='WAV' and actual['bpm_estimated'] and abs(actual['bpm']-145)<2,actual

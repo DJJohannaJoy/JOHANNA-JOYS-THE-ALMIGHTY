@@ -5,7 +5,7 @@ from urllib.parse import urlparse,parse_qs
 from types import SimpleNamespace
 from tkinter.font import Font
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner as S,set_library as L
+import almighty as S,set_library as L
 directory=Path(__file__).resolve().parent/('library-fixture-'+uuid.uuid4().hex);directory.mkdir()
 try:
     data=directory/'data';output=directory/'results';output.mkdir()

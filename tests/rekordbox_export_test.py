@@ -2,7 +2,7 @@ from pathlib import Path
 import sys,json,uuid,shutil,xml.etree.ElementTree as ET,csv
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import rekordbox_export as E,scanner as S,ui_rekordbox as U
+import rekordbox_export as E,almighty as S,ui_rekordbox as U
 folder=Path(__file__).resolve().parent/('export-fixture-'+uuid.uuid4().hex);folder.mkdir()
 try:
     audio=folder/'audio';audio.mkdir()

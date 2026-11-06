@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 from tkinter.font import Font
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner as S,ui_workspace as U
+import almighty as S,ui_workspace as U
 folder=Path(__file__).resolve().parent/('ai-progress-'+uuid.uuid4().hex);folder.mkdir()
 try:
     with patch.object(S.C,'DATA',folder/'data'),patch.object(S.C,'OUTPUT',folder/'results'),patch.object(S.C,'LOGS',folder/'logs'),patch.object(S.C,'CONFIG_FILE',folder/'settings.json'),patch.object(S.AppGUI,'check_local_ai'):

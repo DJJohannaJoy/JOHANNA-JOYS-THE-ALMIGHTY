@@ -3,7 +3,7 @@ from pathlib import Path
 import json,sys,uuid,shutil,time
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner as S
+import almighty as S
 folder=Path(__file__).resolve().parent/('columns-fixture-'+uuid.uuid4().hex);folder.mkdir()
 def settle(app):
     end=time.monotonic()+.22

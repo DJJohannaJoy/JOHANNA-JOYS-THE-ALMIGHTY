@@ -13,7 +13,7 @@ import tempfile
 import threading
 from pathlib import Path
 from typing import Callable
-import scanner_core as C
+import audio_core as C
 import track_results as R
 
 ROOT = Path(__file__).resolve().parent
@@ -21,7 +21,7 @@ MIX_COPY = ROOT / 'engine' / 'mix-id'
 
 
 def locate_mixid(preferred='') -> Path | None:
-    """Engine is bundled into the SET SCANNER directory after first-run setup."""
+    """Engine is bundled into the JOHANNA JOY\'S THE ALMIGHTY directory after first-run setup."""
     if (MIX_COPY / 'cli.mjs').is_file() and (MIX_COPY / 'lib' / 'audio.mjs').is_file():
         return MIX_COPY
     return None
@@ -35,7 +35,7 @@ def mixid_ready(cfg):
 
 def ensure_mixid_copy(cfg: dict, log: Callable[[str],None]) -> Path:
     if not mixid_ready(cfg):
-        raise RuntimeError('mix-id ist nicht eingerichtet. Bitte den SET SCANNER mit 2_SET_SCANNER_STARTEN.bat starten, damit alle Engines automatisch installiert werden.')
+        raise RuntimeError('mix-id ist nicht eingerichtet. Bitte den JOHANNA JOY\'S THE ALMIGHTY über die Programm-EXE starten, damit alle Engines automatisch installiert werden.')
     target = MIX_COPY
     p = target/'lib'/'audio.mjs'
     s = p.read_text(encoding='utf-8')
@@ -91,7 +91,7 @@ def run_mixid(mix: Path, cfg: dict, env: dict, log, cancel: threading.Event, pro
     ffmpeg=shutil.which('ffmpeg',path=env.get('PATH'))
     def worker(number):
       nonlocal completed,failures
-      with tempfile.TemporaryDirectory(prefix='set-scanner-mixid-') as folder:
+      with tempfile.TemporaryDirectory(prefix='set-almighty-mixid-') as folder:
         pcm=Path(folder)/'probe.raw'
         while not stopped.is_set():
             if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
@@ -189,7 +189,7 @@ def merge_results(offline, mixid, shazam):
 
 def merged_report(mix:Path,duration:float,offline,weak,mixid,shazam,statuses,errors,observations=None,progress=None):
     rec=R.merge_records(observations) if observations is not None else merge_results(offline,mixid,shazam)
-    lines=['THE ALMIGHTY | SET SCANNER 1.13 EMBER | GEMEINSAME TRACKLIST','='*72,
+    lines=['JOHANNA JOY\'S THE ALMIGHTY | GEMEINSAME TRACKLIST','='*72,
            f'Datei: {mix}',f'Dauer: {C.hhmmss(duration)}',
            f'Erstellt: {C.stamp()}','', 'ENGINE-STATUS', '-'*72]
     for k,s in statuses.items():lines.append(f'{k}: {s}')

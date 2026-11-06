@@ -1,8 +1,0 @@
-THE ALMIGHTY – Version 1.13 · EMBER
-
-Windows-Anwendung: https://github.com/DJJohannaJoy/THE-ALMIGHTY/releases
-Windows-ZIP vollständig entpacken und THE_ALMIGHTY.exe öffnen.
-APP und runtime bleiben neben der EXE.
-
-Das Quellprojekt lässt sich weiterhin über 1_INSTALLIEREN_ODER_AKTUALISIEREN.bat installieren.
-Anleitung: README.md und docs/WINDOWS_PROGRAMM.md.

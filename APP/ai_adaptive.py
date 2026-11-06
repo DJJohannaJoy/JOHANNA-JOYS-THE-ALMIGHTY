@@ -1,7 +1,7 @@
 """Bounded model-selected follow-up tests. Only enumerated, local tools may run."""
 import hashlib,json,time,tempfile,shutil,re
 from pathlib import Path
-import scanner_core as C
+import audio_core as C
 import track_results as R
 
 def key(value):return hashlib.sha256(json.dumps(value,sort_keys=True,default=str).encode()).hexdigest()

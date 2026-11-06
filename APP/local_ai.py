@@ -18,7 +18,7 @@ def request_json(url, payload=None, timeout=4):
     headers={'Content-Type':'application/json'}
     body=json.dumps(payload).encode('utf-8') if payload is not None else None
     req=urllib.request.Request(url,data=body,headers=headers,method='POST' if body else 'GET')
-    # No proxy or redirect may send a scanner report off this computer.
+    # No proxy or redirect may send a almighty report off this computer.
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self,*args,**kwargs):return None
     opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),NoRedirect())
@@ -101,7 +101,7 @@ def detect(cfg=None):
 
 
 SYSTEM = """Du bist eine Prüf- und Formatierungshilfe für DJ-Set-Tracklists.
-Nur Belege aus dem gelieferten Scannerbericht dürfen verwendet werden.
+Nur Belege aus dem gelieferten Prüfbericht dürfen verwendet werden.
 ERFINDE NIEMALS Songtitel, Zeitstempel oder Erkennungsquellen.
 Wenn es Widersprüche oder zweifelhafte Matches gibt, markiere sie als unsicher.
 Korrigiere keine Namen nach Weltwissen; gib lediglich mögliche Dubletten und auffällige Widersprüche an.
@@ -126,7 +126,7 @@ def review_report(report_path: Path, max_chars=36000, cfg=None):
     # Restrict to model's context; disclose truncation instead of fabricating coverage.
     excerpt=full[:max_chars]
     clipped=len(full)>len(excerpt)
-    prompt='Prüfe ausschliesslich diesen Scannerbericht. Keine neuen Tracks erzeugen.\n\n'+excerpt
+    prompt='Prüfe ausschliesslich diesen Prüfbericht. Keine neuen Tracks erzeugen.\n\n'+excerpt
     messages=[{'role':'system','content':SYSTEM},{'role':'user','content':prompt}]
     if provider=='LM Studio':
         data=request_json(base+'/v1/chat/completions',
@@ -141,9 +141,9 @@ def review_report(report_path: Path, max_chars=36000, cfg=None):
     if not isinstance(result,str) or not result.strip():
         raise RuntimeError('Die lokale KI hat keinen auswertbaren Text zurückgegeben.')
     out=report_path.with_name(report_path.stem+'_KI_PRUEFUNG.txt')
-    out.write_text('SET SCANNER · OPTIONALE LOKALE KI-PRÜFUNG\n'
+    out.write_text('JOHANNA JOY\'S THE ALMIGHTY · OPTIONALE LOKALE KI-PRÜFUNG\n'
                    f'Backend: {provider} / {model}\n'
-                   'KEINE AUDIO-ERKENNUNG. Nur Hinweise zu vorhandenen Scanner-Treffern.\n'
+                   'KEINE AUDIO-ERKENNUNG. Nur Hinweise zu vorhandenen Treffern.\n'
                    + ('ACHTUNG: Bericht wegen Kontextlänge nur teilweise geprüft.\n' if clipped else '')
                    + ('ACHTUNG: Die KI-Ausgabe wurde vom Modell gekürzt und ist unvollständig.\n' if limited else '')
                    + '\n'+result.strip()+'\n',encoding='utf-8-sig')

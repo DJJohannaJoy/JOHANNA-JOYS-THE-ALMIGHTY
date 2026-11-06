@@ -2,8 +2,8 @@ from pathlib import Path
 import sys,json,uuid,shutil
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner as S
-from ui_first_spark import SectionHeading
+import almighty as S
+from ui_theme import SectionHeading
 directory=Path(__file__).resolve().parent/('ember-fixture-'+uuid.uuid4().hex);directory.mkdir()
 try:
     with patch.object(S.C,'DATA',directory/'data'),patch.object(S.C,'OUTPUT',directory/'results'),patch.object(S.C,'LOGS',directory/'logs'),patch.object(S.C,'CONFIG_FILE',directory/'settings.json'),patch.object(S.AppGUI,'check_local_ai'):
@@ -24,7 +24,7 @@ try:
                 header=app.header
                 assert header.version_bounds[2]<=header.language_bounds[0]-8
                 assert header.language_bounds[2]<header.library_bounds[0]<header.gear_bounds[0]
-                assert header.itemcget(header.find_withtag('version')[0],'text')=='Version 1.13 - EMBER'
+                assert header.itemcget(header.find_withtag('version')[0],'text')=='Version 1.14 - EMBER'
                 icon=app.reset_button.bbox('reset_icon')
                 assert 2<=icon[0]<icon[2]<=app.reset_button.winfo_width()-2
                 assert 2<=icon[1]<icon[3]<=app.reset_button.winfo_height()-2

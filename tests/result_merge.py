@@ -3,7 +3,7 @@ import sys,json,tempfile
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
 import track_results as R
 import engine_external as X
-import scanner_core as C
+import audio_core as C
 
 observations=[
  {'artist':'Artist','title':'Song','source':'mix-id','time':120,'_observed_order':1},

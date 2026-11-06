@@ -151,7 +151,7 @@ def _write_bundle(destination,name,rows,strict=True):
             if '\n' in row['path'] or '\r' in row['path']:raise ValueError('Ungültiger Zeilenumbruch im Dateipfad.')
             lines.extend(['#EXTINF:-1,'+label,row['path']])
         playlist.write_text('\n'.join(lines)+'\n',encoding='utf-8')
-        root=ET.Element('DJ_PLAYLISTS',Version='1.0.0');ET.SubElement(root,'PRODUCT',Name='THE ALMIGHTY',Version='1.13',Company='Johanna Joy')
+        root=ET.Element('DJ_PLAYLISTS',Version='1.0.0');ET.SubElement(root,'PRODUCT',Name="JOHANNA JOY'S THE ALMIGHTY",Version='1.14',Company='Johanna Joy')
         collection=ET.SubElement(root,'COLLECTION');ids={}
         for row in ready:
             key=path_key(row['path'])

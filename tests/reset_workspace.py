@@ -2,7 +2,7 @@ from pathlib import Path
 import sys,uuid,shutil,json
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import scanner as S
+import almighty as S
 folder=Path(__file__).resolve().parent/('reset-fixture-'+uuid.uuid4().hex);folder.mkdir()
 try:
     with patch.object(S.C,'DATA',folder/'data'),patch.object(S.C,'OUTPUT',folder/'results'),patch.object(S.C,'LOGS',folder/'logs'),patch.object(S.AppGUI,'check_local_ai'):

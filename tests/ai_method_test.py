@@ -1,9 +1,10 @@
+from test_paths import COMPONENTS
 from pathlib import Path
 import sys,json,uuid,shutil,threading,time,wave
 from contextlib import contextmanager
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'APP'))
-import ai_method as A,scanner_core as C,local_ai as L
+import ai_method as A,audio_core as C,local_ai as L
 folder=Path(__file__).resolve().parent/('ai-method-fixture-'+uuid.uuid4().hex);folder.mkdir()
 @contextmanager
 def scratch(**kwargs):
@@ -49,7 +50,7 @@ try:
     def match(parts,factor,kind,directory,env,cancel,log):
         assert len(parts)==1 and parts[0].is_file()
         return [C.OfflineHit(str(reference),0,240,factor,kind,0,0,str(parts[0]),12)],[]
-    cfg={'ffmpeg_dir':r'C:\Users\JOY\Desktop\SET SCANNER\tools\ffmpeg'}
+    cfg={'ffmpeg_dir':str(COMPONENTS/'tools/ffmpeg')}
     with patch.object(C,'DB',db),patch.object(A.tempfile,'TemporaryDirectory',scratch):
         audit=A.Audit(mix,cfg,folder/'audio',lambda *event:None,match=match,duration=25)
         value=audit.audio_check(cases[0],[str(reference)])
