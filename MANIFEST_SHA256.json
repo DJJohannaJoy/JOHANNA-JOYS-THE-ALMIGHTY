@@ -1,0 +1,560 @@
+{
+  "date": "2026-11-06",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "size": 119,
+      "sha256": "e172c95b014866d11a0a7ce2aa864aab5e190a01658fe02e4d02d57ac5c2bb14"
+    },
+    {
+      "path": ".gitignore",
+      "size": 520,
+      "sha256": "d215df3c1bedd51c10c2933bcc814848d949ed3e43a78e41034c12ad9c2a6683"
+    },
+    {
+      "path": "1_INSTALLIEREN_ODER_AKTUALISIEREN.bat",
+      "size": 2476,
+      "sha256": "b93516b1e15e54abaf8d69b2e4b51185ad2d48574efc5b89bcf277ace40b7cc8"
+    },
+    {
+      "path": "2_BESTEHENDE_SCANNER_DATEN_IMPORTIEREN.bat",
+      "size": 147,
+      "sha256": "bc2c07122fecab4bcb2922f93423a16512ab7e6d950656ca987a41fea8f2f110"
+    },
+    {
+      "path": "APP/2_SET_SCANNER_STARTEN.bat",
+      "size": 1687,
+      "sha256": "a0e6310f1661305ce9793a08650e505a408eaf43552fc7e2f1cc75d67e5532cd"
+    },
+    {
+      "path": "APP/ALTERNATIVE_OLLAMA_INSTALLIEREN.url",
+      "size": 59,
+      "sha256": "f9834a1f6cd2e5af579c845ea8eb77a474d30f9de0ca1178fa8f4adaec702e72"
+    },
+    {
+      "path": "APP/LOKALE_KI_LM_STUDIO_INSTALLIEREN.url",
+      "size": 63,
+      "sha256": "962266fe3be0f6e06101c759c2959a8b2b98103f4b9ed1a1316dc0fc8924e7ca"
+    },
+    {
+      "path": "APP/THE ALMIGHTY - STARTEN.bat",
+      "size": 147,
+      "sha256": "b1e14dee6f364eb6b1a92d6fa1fefd08b262cc76d9b637cc30bb9dc9bad9f50b"
+    },
+    {
+      "path": "APP/WAS_IST_WO.txt",
+      "size": 919,
+      "sha256": "c0ece138d9b9744c3b7696f3ef3b4b6ca8d7eead91b0e84ff3a1da768d51c903"
+    },
+    {
+      "path": "APP/ai_adaptive.py",
+      "size": 14038,
+      "sha256": "37af849479394bba945ec65df6aa5e74c8ac3ac9787d11fd5bd34791bfa3237a"
+    },
+    {
+      "path": "APP/ai_method.py",
+      "size": 27388,
+      "sha256": "258e2e81967344ea3db0332c23f16bfdca9610207e502b0cb331bfa84155eeef"
+    },
+    {
+      "path": "APP/assets/almighty_icon.ico",
+      "size": 163269,
+      "sha256": "1873062cf5c8b249002ee0c2e4b9ebbe130e7cc8a373373c80d244ca742fbc8e"
+    },
+    {
+      "path": "APP/assets/almighty_icon.png",
+      "size": 391551,
+      "sha256": "2586c38454e067b4334821ac7328690c8ef3c196516bb305a523b1bd22905ffd"
+    },
+    {
+      "path": "APP/assets/approved_banner.png",
+      "size": 235831,
+      "sha256": "bcbcd4a148001cbd1705b25059c5d0b17df2688af10606bfc5ee37e160d2e864"
+    },
+    {
+      "path": "APP/assets/drop_texture_left.png",
+      "size": 22649,
+      "sha256": "7de61738d11a515fd56bf0758e88f067503bbf2fd3040e57da95e212e517199a"
+    },
+    {
+      "path": "APP/assets/drop_texture_right.png",
+      "size": 20589,
+      "sha256": "c39271889d814295b3ec92c00ba0d1c255314c3fabc6208901c5ff625ee382bd"
+    },
+    {
+      "path": "APP/assets/first_spark_header.png",
+      "size": 114803,
+      "sha256": "a14bde79feedc1f7b19ee28c299ba3b0bdcf8aac6bfceedd2be33c08c2bf246b"
+    },
+    {
+      "path": "APP/assets/first_spark_header_v2.png",
+      "size": 211763,
+      "sha256": "304f2a109b4711effe5857c0cea3bff24a8c33f5aea1db4c07cd36a50fee0153"
+    },
+    {
+      "path": "APP/assets/johanna_joy_logo_weiss.png",
+      "size": 45551,
+      "sha256": "ea6a1d92973fd38c0cc735ef0c56d268c2a544555a5cf9b4fd0e7afb5b673fe9"
+    },
+    {
+      "path": "APP/audfprint_utf8.py",
+      "size": 5464,
+      "sha256": "ef9719777b0992ea57040752c9f2551c616fd9a49c98de5221e5c84b76418f59"
+    },
+    {
+      "path": "APP/engine_external.py",
+      "size": 12098,
+      "sha256": "93f7edc80a109725f07cea7b14e024e2175e98390e5ed3aa5e73048c34711f9d"
+    },
+    {
+      "path": "APP/local_ai.py",
+      "size": 8060,
+      "sha256": "a182a05029da2b4bea74623ca88359b5a613b86dcec64145899df50b4b8bb11a"
+    },
+    {
+      "path": "APP/mixid_probe.mjs",
+      "size": 2478,
+      "sha256": "a307f09ae3ec74f342260eb1416d6737ee2c3b38b1ff23e829f1c395a99c1ed3"
+    },
+    {
+      "path": "APP/online_requests.py",
+      "size": 8552,
+      "sha256": "4f35a86b4c3a5b4355d53b7de7b092f9ce93b3d8a3e3bc42b96570c719300229"
+    },
+    {
+      "path": "APP/portable_check.py",
+      "size": 2067,
+      "sha256": "ca9c92a02a5da459456c9a99572b6f32898b6e331a259ca041a1b9f32cd18106"
+    },
+    {
+      "path": "APP/rekordbox_export.py",
+      "size": 8220,
+      "sha256": "fe75430fbf48e269dd301bca7d2fb0b31c1da602a6537a8fc79b96f5b3dd03d1"
+    },
+    {
+      "path": "APP/requirements.txt",
+      "size": 123,
+      "sha256": "a68779f87266c63a62c1170ea6793c8d3e428120fc89db45d9fbbbc780c8fe89"
+    },
+    {
+      "path": "APP/scan_jobs.py",
+      "size": 14128,
+      "sha256": "dca00da26f0346c1dc27b17d53c665afbf7dcce10f0f06b5ef05b0873216f9c8"
+    },
+    {
+      "path": "APP/scanner.py",
+      "size": 78785,
+      "sha256": "ae4e4bc8648d40a140215139e934dc925458ebda0dd5752dbe971b72b74e107b"
+    },
+    {
+      "path": "APP/scanner_core.py",
+      "size": 51140,
+      "sha256": "39bedcb99601818cae697aaa0580b059e8f127a0776b70ba7d228959e02b534b"
+    },
+    {
+      "path": "APP/set_library.py",
+      "size": 3322,
+      "sha256": "80c54da45d317d3caa683dd4b27722a3ceef829a1feb9ed72fa4e8b085974ab7"
+    },
+    {
+      "path": "APP/setup_components.py",
+      "size": 15345,
+      "sha256": "885d3293e72e880b49f69efe4858b5db930a4d45778970080b20974e1f44a6b2"
+    },
+    {
+      "path": "APP/track_results.py",
+      "size": 5412,
+      "sha256": "46029fb4158607b445226559199d41662524bbcd86ccf9c2cce2dad0790e9354"
+    },
+    {
+      "path": "APP/ui_ai_review.py",
+      "size": 6325,
+      "sha256": "c0891b140bf3f328914e7b4c9f2298c6aa007fabebceade1ac3c0ba7bea175ca"
+    },
+    {
+      "path": "APP/ui_first_spark.py",
+      "size": 46443,
+      "sha256": "2dfe464fbf8e23755f31347a04534827cc179ecc62226388de0be0cabde3d5e7"
+    },
+    {
+      "path": "APP/ui_rekordbox.py",
+      "size": 5390,
+      "sha256": "c99d06c3e83ae2b458fe74b1317740c7b2cde80884f1ef8749e6a1e7a1ef21ab"
+    },
+    {
+      "path": "APP/ui_text.py",
+      "size": 12460,
+      "sha256": "44fe86f8e37267c185a6656dad1977095786fbb53a7c397af728f48ab8c44e18"
+    },
+    {
+      "path": "APP/ui_workspace.py",
+      "size": 18736,
+      "sha256": "73779d58da413841d20b77b0fd12a5d75ee7ae3a60a8d5ecfd83cd43528c78fc"
+    },
+    {
+      "path": "FORMAT_BPM_PRUEFEN_UND_INSTALLIEREN.cmd",
+      "size": 1991,
+      "sha256": "7b2fd5d1d7ddc2f9a2f1a1aed205d8856cfe676912926c0e29550578135124fb"
+    },
+    {
+      "path": "README.md",
+      "size": 3372,
+      "sha256": "9dff983887edaa8553c8954466669d22cfdfd8268a39de27641df007baca5102"
+    },
+    {
+      "path": "START_HIER.txt",
+      "size": 366,
+      "sha256": "494f01f56315fec09dd2039839f7627b0251ebf54e791bc7ede24a66ec8659b8"
+    },
+    {
+      "path": "design/01_MASTER_MOCKUP_FIRST_SPARK.png",
+      "size": 1641304,
+      "sha256": "104cc23449ddaf19dc6afea4fddd90ea3032b89d61f56c219ee7aaac6afc9a1f"
+    },
+    {
+      "path": "design/02_ORIGINAL_PERFEKT_FAVORIT_0.71.png",
+      "size": 1742747,
+      "sha256": "19880024104cc8a2071e1b42b7af8ec4fcc86eb9451c7dec726ddfd961641315"
+    },
+    {
+      "path": "design/03_ALT_MOCKUP_MIT_REPARATURBUTTONS.png",
+      "size": 1584269,
+      "sha256": "f1198a8203629ce9357832975163c537d8f1aa176e108da7ef8f984e3737e7b5"
+    },
+    {
+      "path": "design/04_IST_ZUSTAND_ECHTES_FENSTER.png",
+      "size": 375064,
+      "sha256": "d043febd5e0125ac1c88971df574c21e103e5672b3b94d58808e2469243c72af"
+    },
+    {
+      "path": "design/05_VERGLEICH_SOLL_IST.png",
+      "size": 799993,
+      "sha256": "be3dbf5d1daf19141d26000955b61a1709d91a077256a3f52eaf3459baaa8a7c"
+    },
+    {
+      "path": "design/06_BENUTZER_SCREENSHOT_FEHLER.png",
+      "size": 1331413,
+      "sha256": "0dbdd259d93302440f3dc4245f58e6081a6a8a829c532899154df34b829d2404"
+    },
+    {
+      "path": "design/JOHANNA_JOY_ORIGINAL_LOGO_ROT.png",
+      "size": 31216,
+      "sha256": "8f3af11a55fa213254028cce211d5e458481f7111dffe6f19f7d5a4c30ea22c3"
+    },
+    {
+      "path": "design/JOHANNA_JOY_ORIGINAL_LOGO_SCHWARZ.png",
+      "size": 106920,
+      "sha256": "eadcafc51cc863e9863d0b0f0b561c687e3c5b0688d5b6ddfb2a8c419743600e"
+    },
+    {
+      "path": "design/JOHANNA_JOY_ORIGINAL_LOGO_WEISS.png",
+      "size": 48053,
+      "sha256": "02bac283abb07b5d3a15077f33239efe35c361f41bda9c41524e7b380d114465"
+    },
+    {
+      "path": "docs/ABSCHLUSSFENSTER.md",
+      "size": 1002,
+      "sha256": "a0170f98491fa365972631b401c23cb8d4865308659bb83e80948452833c7093"
+    },
+    {
+      "path": "docs/AUFBAU_FORTSCHRITT.md",
+      "size": 1971,
+      "sha256": "42777d6bb608bfd3f2bcba8ee0cb34cbd60fab6b6bb7031bd338b8453a1fe5bc"
+    },
+    {
+      "path": "docs/BACKLOG.md",
+      "size": 2542,
+      "sha256": "f21fa7b06f18ae8910b99a0b4b28c33a64534e810e402abce9e1f5559ed7cb1f"
+    },
+    {
+      "path": "docs/DATENBANK_FIX_2026-11-05.md",
+      "size": 2441,
+      "sha256": "4bf6b96cc77a8ef3d1feebc28f552f14b7799fc32cd2a212a9f944c6e9055301"
+    },
+    {
+      "path": "docs/DATEN_MIGRATION.md",
+      "size": 1105,
+      "sha256": "0940ebdbe02817e0c248779864008a6a0b7957aebf823476a789d1bfe4a1aeae"
+    },
+    {
+      "path": "docs/DESIGN_TARGET.md",
+      "size": 3217,
+      "sha256": "b69787c382206bcb2453c8e10850cc00426b19c86de50d4d7d481848bb3f5de5"
+    },
+    {
+      "path": "docs/EMBER_1_13.md",
+      "size": 1658,
+      "sha256": "2e21428cfa7c936c8ce1cccd53593407f0a9f756266bd1623650ed63772c96fc"
+    },
+    {
+      "path": "docs/FORMAT_UND_BPM.md",
+      "size": 1566,
+      "sha256": "d59cfef0717a231fbec9c4949fba26192be1b3128691faceae4e60a400756a62"
+    },
+    {
+      "path": "docs/GOOGLE_SONGSEARCH_RECHERCHE.md",
+      "size": 913,
+      "sha256": "a43c68e74a6c9c0223d9090d40db5e8b406f17be09d5f767518d52eb9c964782"
+    },
+    {
+      "path": "docs/KI_ANTWORT_WIEDERHOLUNG.md",
+      "size": 2086,
+      "sha256": "fe7a5d2ebc100013add5a7d9ca9d303b5ac540dda0f887f65742cfecdf0ea1bd"
+    },
+    {
+      "path": "docs/KI_HINTERGRUNDMETHODE.md",
+      "size": 6861,
+      "sha256": "9394556ad038b347b31e34c1836ba9edd36e12a6bf3e583924cdf549273d4d13"
+    },
+    {
+      "path": "docs/NO_PAUSE_AUTOMATIK.md",
+      "size": 3726,
+      "sha256": "feda06b4b60470cc3c23c0281dcf297215da2269232f8e87178ce6523bb1947c"
+    },
+    {
+      "path": "docs/ONLINE_DIENSTLIMIT_UND_KI.md",
+      "size": 4103,
+      "sha256": "74dba5a766b681870466a6a9bc76c707d8b358329aed2c04bce608d8bb0b3e2b"
+    },
+    {
+      "path": "docs/PARALLEL_UND_LOKALE_KI.md",
+      "size": 3557,
+      "sha256": "8dad2f954b50f8a4b07f4f1f87137887dba2a2cdc3f276794783d54b6236332c"
+    },
+    {
+      "path": "docs/REKORDBOX_EXPORT.md",
+      "size": 1632,
+      "sha256": "bc99ed765ba95fd31086ff8b85a96539fc4a62c0d9a7ee30ef6e601b7f9b31db"
+    },
+    {
+      "path": "docs/SCAN_UPDATE_2026-11-05.md",
+      "size": 8568,
+      "sha256": "cd890b5e8422c2fa20e0362da193e333109e606d022639399d9d979af3d1659d"
+    },
+    {
+      "path": "docs/SET_BIBLIOTHEK_UND_FORTSCHRITT.md",
+      "size": 4075,
+      "sha256": "8c42429984b994ea7399d99f9dfcebb691afb13fe6409608ebb9c96ae8491a53"
+    },
+    {
+      "path": "docs/TECHNIK.md",
+      "size": 1567,
+      "sha256": "94dc688eaa3155323345ef33f5269190aefd22c858f290e013374677a8924b56"
+    },
+    {
+      "path": "docs/UI_UPDATE_2026-11-05.md",
+      "size": 4499,
+      "sha256": "8307690116db7d80a537792ed28ab9ceb18577aa946303b50373afd6d0e45c4f"
+    },
+    {
+      "path": "docs/WEITER_IN_CODEX.txt",
+      "size": 1096,
+      "sha256": "f11ed4cd51bb8017b0f81085b991fa253e746b0f330baea1daee0fc84243cde5"
+    },
+    {
+      "path": "docs/WINDOWS_PROGRAMM.md",
+      "size": 2146,
+      "sha256": "d2f31a9777cc60c3beb5719ff68c1210d3f076e4056945a998b1c2cdaac3f40f"
+    },
+    {
+      "path": "docs/proof/KI_RESUME_24_OF_24.json",
+      "size": 273,
+      "sha256": "475de423fd0f839d7bc868958ac03cef6d75e163ecaea47c00ec06f8f4f61eb7"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_COMPLETION.png",
+      "size": 321646,
+      "sha256": "7425666571bcc1f5e06df8e29901c39d821ecb09c7e7c3fc65512d8f7cb3a615"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_DESIGN_COMPARISON.png",
+      "size": 1001689,
+      "sha256": "a77e9c294fb4e89be09f052aee3063233abd2403ff23a60b9e249f138d77b9c5"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_MODEL_CONTEXT.png",
+      "size": 607985,
+      "sha256": "348af4e78964832dcd58b917771eb00308a1a0a9ca073341b90906c7cf4c8621"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_MODEL_SCREENSHOT.png",
+      "size": 119989,
+      "sha256": "de232e3709f3d416e2e6d15391b439928c350d6f31a0f09c2c3af54309d697f8"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_PAUSED_PROGRESS.png",
+      "size": 904930,
+      "sha256": "13270ca0d103c8635716cdcb72866b146c711538f31f96bfec5d7e74f46a45dc"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_REAL_PROGRESS.png",
+      "size": 187470,
+      "sha256": "08febce8c478dfe89c7b1b4acdd2b97021efb94cdfc31ca5581fabf7ba8f5b37"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_REAL_SCREENSHOT.png",
+      "size": 875568,
+      "sha256": "10c1b54bc2f5672ffc5d564e19fbfffe40babfd527a1c3420431c01723f83467"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_RETRY_SCREENSHOT.png",
+      "size": 148304,
+      "sha256": "474924c5dc13b346580ee1d0f9bd4ed45ce5453974e5de32150102393d8b9ab8"
+    },
+    {
+      "path": "docs/proof/THE_ALMIGHTY_SETTINGS_SCREENSHOT.png",
+      "size": 245751,
+      "sha256": "a01de504e8b1de4f63ededa78c41c04f7b8e9067ad390515a8171ea2468ffd96"
+    },
+    {
+      "path": "docs/proof/WINDOWS_PROGRAMM_TEST.json",
+      "size": 285,
+      "sha256": "18ebc8341ac400e47a7d8311f3f5ac103289966c028c0f268b7d19aa96912303"
+    },
+    {
+      "path": "legacy_versions/SET_SCANNER_V06_EIN_KLICK_SETUP.zip",
+      "size": 38356,
+      "sha256": "de06ce23a128f5a25dc2ddbe963d07da150ee627e4022ef7aa2331324fbc63fd"
+    },
+    {
+      "path": "legacy_versions/SET_SCANNER_V07_OBERFLAECHE_LINKS.zip",
+      "size": 38897,
+      "sha256": "0f6cbe66a48edc919e7dcb531c69c390ed431e3702788c5533abd4542ba1dc9b"
+    },
+    {
+      "path": "legacy_versions/THE_ALMIGHTY_071_FIRST_SPARK_UI_MATCH_UPDATE.zip",
+      "size": 1240684,
+      "sha256": "2823c70c0c901ec69b70af8b4de07f78c8dd0eb8866d953684c6cd152fe3a277"
+    },
+    {
+      "path": "licenses/NODE_LICENSE.txt",
+      "size": 156927,
+      "sha256": "c43590e66f725c30d0dd1352643c2fc8490cfd0fd06ce6829261afcb1b5bf62b"
+    },
+    {
+      "path": "licenses/ffmpeg/LICENSE",
+      "size": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "licenses/ffmpeg/README.txt",
+      "size": 45212,
+      "sha256": "143123d3eadf7c3be2018c3dcec933b132f055582c0578ef59b4a36c3c7096dc"
+    },
+    {
+      "path": "scripts/AlmightyLauncher.cs",
+      "size": 3626,
+      "sha256": "05afba3918e5a3d45b42b9aab5722a3ae5bdee251116b63075746afd784c97aa"
+    },
+    {
+      "path": "scripts/build_windows.py",
+      "size": 4577,
+      "sha256": "d5651c6badb46e39283e42ce1c75ba03ffa7ba190f959866b9774bc09bf7884f"
+    },
+    {
+      "path": "scripts/uebernehme_lokale_daten.ps1",
+      "size": 1763,
+      "sha256": "113fa8b081179a948cbce067d872a7ada2836e1b34e53b4544a79803b258fc9b"
+    },
+    {
+      "path": "tests/ai_adaptive_test.py",
+      "size": 4939,
+      "sha256": "f67df1e07e233ceabb56dc26343358c6009c5566460329df7295ec00e28e744b"
+    },
+    {
+      "path": "tests/ai_method_test.py",
+      "size": 5002,
+      "sha256": "d3145314d10c9f562d0e63ef3b0f99534b09d2490a7343b5eacaa7cdea8f5222"
+    },
+    {
+      "path": "tests/ai_recovery_test.py",
+      "size": 3958,
+      "sha256": "1a0627448fc1349b416098650fca487f60817055b2d53fe67bad4fac32e0aad6"
+    },
+    {
+      "path": "tests/ai_ui_lifecycle.py",
+      "size": 2797,
+      "sha256": "771d1300098a9365c2da8b1f31ec22f05ecbb2bdc1f20369be0119862650fed7"
+    },
+    {
+      "path": "tests/ai_visible_progress.py",
+      "size": 3579,
+      "sha256": "a1f5962d522e3e24832ac9cbbb6a1d296ccce92776924965008c2fb7f28c64f2"
+    },
+    {
+      "path": "tests/command_encoding.py",
+      "size": 706,
+      "sha256": "85e19c33df4473d5a9f8e7b1cd212355b7b9633f25a9d3b4633fc35378173009"
+    },
+    {
+      "path": "tests/ember_ui.py",
+      "size": 3501,
+      "sha256": "457b7abc2eb57c1883dd0cae5ed6bb35dadb4ae164170194f082419691aa7b16"
+    },
+    {
+      "path": "tests/library_views.py",
+      "size": 5683,
+      "sha256": "9e5c2ec4f8db10fd76501474348b3ce8ade15f3a71617fe28726618103afd26e"
+    },
+    {
+      "path": "tests/local_ai_test.py",
+      "size": 3596,
+      "sha256": "955c6e9ec2b1e4d31a49651f206d2278627421deac2b1d9c449853321c5c5d39"
+    },
+    {
+      "path": "tests/metadata_test.py",
+      "size": 5739,
+      "sha256": "13ad516112b1c85a9b1032ced9a0a5a6dc2287b403461a8eec4383747dd47f4b"
+    },
+    {
+      "path": "tests/offline_jobs.py",
+      "size": 3250,
+      "sha256": "2b90a920d7e01c5a6ba259f25cc51c705dcbdff09fd32ea08159d77a320d9b78"
+    },
+    {
+      "path": "tests/online_requests_test.py",
+      "size": 9112,
+      "sha256": "0c7280cdb29aecad6e03a4de02da9b1e96c1abf2753baebd2c6bcae6bb75a17e"
+    },
+    {
+      "path": "tests/parallel_index_recovery.py",
+      "size": 4205,
+      "sha256": "9602179683f6121c3f08216988152f8d83e725c74f50970f60557359f7e12fa6"
+    },
+    {
+      "path": "tests/parallel_scan.py",
+      "size": 6229,
+      "sha256": "745ce3d0de2ca513c50ca2a4efa6176b1b350773ffc24e592bcdeb706353ccbb"
+    },
+    {
+      "path": "tests/rekordbox_export_test.py",
+      "size": 4918,
+      "sha256": "2ebbda0d9ea9800349969b05894277e45659ba96eb537de81bcf35e6fbf041bd"
+    },
+    {
+      "path": "tests/reset_workspace.py",
+      "size": 2920,
+      "sha256": "3d64b8ee6e912ad4e2ebb9fad679a1acc247a08b6d685a48c3a956362dc788ef"
+    },
+    {
+      "path": "tests/result_merge.py",
+      "size": 2683,
+      "sha256": "4d505f25ad76ed237aaa3e0772e282043b6e23f8a2a99b0bb8bdf52630353711"
+    },
+    {
+      "path": "tests/runtime_selection.py",
+      "size": 1743,
+      "sha256": "369643ddefddb170f386aa4ab0f1939afb7aeaa31a160ac11ffa8f1551722341"
+    },
+    {
+      "path": "tests/static_check.py",
+      "size": 1163,
+      "sha256": "3362110347cd993a8f23e4f10937b4a50368001a7494a1864898b2ba25eb3954"
+    },
+    {
+      "path": "tests/ui_smoke.py",
+      "size": 17209,
+      "sha256": "5cd7e962ccacc9be0227bd8faa7bbf9d62b72607f84f3368caa67a503049be95"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "checks": {
+    "native_imports": true,
+    "isolated_runtime": true,
+    "ffmpeg": true,
+    "ffprobe": true,
+    "node": true,
+    "audfprint": true,
+    "mix_id": true,
+    "real_gui": true,
+    "isolated_test_data": true
+  },
+  "python": "3.12.10"
+}
