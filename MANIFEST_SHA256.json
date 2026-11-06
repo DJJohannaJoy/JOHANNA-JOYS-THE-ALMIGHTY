@@ -8,8 +8,8 @@
     },
     {
       "path": ".gitignore",
-      "size": 520,
-      "sha256": "d215df3c1bedd51c10c2933bcc814848d949ed3e43a78e41034c12ad9c2a6683"
+      "size": 558,
+      "sha256": "3b16b965a8110b52959098e314eb43a37ea82a958fd3be689ea1584a1b553a04"
     },
     {
       "path": "1_INSTALLIEREN_ODER_AKTUALISIEREN.bat",
@@ -128,8 +128,8 @@
     },
     {
       "path": "APP/rekordbox_export.py",
-      "size": 8220,
-      "sha256": "fe75430fbf48e269dd301bca7d2fb0b31c1da602a6537a8fc79b96f5b3dd03d1"
+      "size": 12320,
+      "sha256": "500a377a014c261083ff6f388eee73773d01c47bbeaf8218b6b04d473d089a85"
     },
     {
       "path": "APP/requirements.txt",
@@ -178,13 +178,13 @@
     },
     {
       "path": "APP/ui_rekordbox.py",
-      "size": 5390,
-      "sha256": "c99d06c3e83ae2b458fe74b1317740c7b2cde80884f1ef8749e6a1e7a1ef21ab"
+      "size": 9307,
+      "sha256": "c244499c880faeb319ad2736194be5b4c7cf5a3ec8561a1ef8a63e15a5fa3cf3"
     },
     {
       "path": "APP/ui_text.py",
-      "size": 12460,
-      "sha256": "44fe86f8e37267c185a6656dad1977095786fbb53a7c397af728f48ab8c44e18"
+      "size": 13219,
+      "sha256": "05e2e6fb04e7cb30f79718a87aac579e63c992473e7b856cc2b5135125e65eae"
     },
     {
       "path": "APP/ui_workspace.py",
@@ -198,8 +198,8 @@
     },
     {
       "path": "README.md",
-      "size": 3372,
-      "sha256": "9dff983887edaa8553c8954466669d22cfdfd8268a39de27641df007baca5102"
+      "size": 3545,
+      "sha256": "4425869e75ac35280f7fea4f0ad624cf19c557b6644fd1b7a42eea4d91481c62"
     },
     {
       "path": "START_HIER.txt",
@@ -323,8 +323,8 @@
     },
     {
       "path": "docs/REKORDBOX_EXPORT.md",
-      "size": 1632,
-      "sha256": "bc99ed765ba95fd31086ff8b85a96539fc4a62c0d9a7ee30ef6e601b7f9b31db"
+      "size": 2548,
+      "sha256": "49ad47518ff05640a445bc68ae6dcab66690a39e24bc1782ed4fce6c062fd6d6"
     },
     {
       "path": "docs/SCAN_UPDATE_2026-11-05.md",
@@ -360,6 +360,11 @@
       "path": "docs/proof/KI_RESUME_24_OF_24.json",
       "size": 273,
       "sha256": "475de423fd0f839d7bc868958ac03cef6d75e163ecaea47c00ec06f8f4f61eb7"
+    },
+    {
+      "path": "docs/proof/REKORDBOX_EXPORT_FINAL.json",
+      "size": 397,
+      "sha256": "6ef7bd2a620b99e265572138a6a9f055bddcf247119ef013e53e28401c23832b"
     },
     {
       "path": "docs/proof/THE_ALMIGHTY_COMPLETION.png",
@@ -528,8 +533,8 @@
     },
     {
       "path": "tests/rekordbox_export_test.py",
-      "size": 4918,
-      "sha256": "2ebbda0d9ea9800349969b05894277e45659ba96eb537de81bcf35e6fbf041bd"
+      "size": 9023,
+      "sha256": "bda25106b4ae964230ed3db7d3f0533059fc9eddd594b952af76227d4209ab6d"
     },
     {
       "path": "tests/reset_workspace.py",

@@ -4,6 +4,12 @@ from tkinter import ttk
 
 VERSION_LABEL='Version 1.13 - EMBER'
 TEXT={
+'Passende Dateien:':'Matching files:','DATEI ÜBERNEHMEN':'USE FILE','MUSIKORDNER ABGLEICHEN':'MATCH MUSIC FOLDER',
+'ZUORDNUNG LÖSCHEN':'CLEAR ASSIGNMENT','Musikordner zum Abgleichen auswählen':'Choose a music folder to match',
+'Musikordner wird abgeglichen …':'Matching music folder …','Audiodateien abgeglichen':'audio files checked',
+'Gespeicherte Bibliotheks-XML nicht verfügbar':'Saved library XML is unavailable',
+'Zuordnung konnte nicht gespeichert werden':'Could not save the assignment','Rekordbox-Bibliothek eingelesen':'Rekordbox library loaded',
+'In Rekordbox: Datei → Importieren → Wiedergabeliste importieren → die exportierte .m3u8 wählen.':'In Rekordbox: File → Import → Import Playlist → choose the exported .m3u8 file.',
 'KI':'AI','geprüft':'checked','KI bewertet Belege':'AI evaluating evidence',
 'Fundstellen abgleichen':'Comparing sources','Remix-Fingerprints testen':'Checking remix fingerprints',
 'KI bewertet neue Belege':'AI evaluating new evidence',

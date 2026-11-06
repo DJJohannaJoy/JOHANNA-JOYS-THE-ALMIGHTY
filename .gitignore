@@ -31,6 +31,7 @@ dist/
 build/
 runtime/
 APP/einstellungen.json
+APP/rekordbox_export_zuordnungen.json
 APP/Downloads_Online/
 APP/Cache/
 *.log

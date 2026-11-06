@@ -2,6 +2,8 @@
 
 **Version 1.13 · EMBER · Windows 64 Bit**
 
+Aktuelles Wartungsupdate: **1.13.1**, finalisierter Rekordbox-Export mit gespeicherten Dateizuordnungen, Musikordner-Abgleich und eindeutig gekennzeichneten Teilplaylists.
+
 DJ-Sets analysieren, Songs mit ihren Fundstellen zusammenführen und die Trackliste als Playlist für Rekordbox exportieren. Schwarz-rote Oberfläche, deutsche und englische Bedienung.
 
 ## Windows-Anwendung
