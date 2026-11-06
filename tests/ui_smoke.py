@@ -64,6 +64,19 @@ with fixture_directory() as td:
             assert len(app.progress_panel.rows)==7
             assert abs(app.save_button.winfo_width()-app.retry_button.winfo_width())<=1
             assert app.start_button.winfo_height()>=64
+            assert app.start_button.master==app.rekordbox_button.master
+            assert app.start_button.winfo_rooty()==app.rekordbox_button.winfo_rooty()
+            assert app.start_button.winfo_height()==app.rekordbox_button.winfo_height()
+            assert abs(app.start_button.winfo_width()/app.rekordbox_button.winfo_width()-1.5)<.02
+            for button in (app.start_button,app.rekordbox_button,app.save_button,app.reset_button,app.retry_button):
+                top=button.winfo_rooty();bottom=top+button.winfo_height();parent=button.master
+                while parent is not None:
+                    assert parent.winfo_rooty()<=top and bottom<=parent.winfo_rooty()+parent.winfo_height(),(geometry,button.caption,parent,bottom)
+                    parent=parent.master
+                for item in button.find_all():
+                    if button.type(item)=='text':
+                        x0,y0,x1,y1=button.bbox(item)
+                        assert 0<=x0 and x1<=button.winfo_width() and 0<=y0 and y1<=button.winfo_height(),(geometry,button.caption,button.bbox(item))
             assert app.reset_button.grid_info()['column']==1 and app.retry_button.grid_info()['column']==2
             assert app.result_heading.cget('text')=='ERGEBNIS'
             assert app.start_button.caption=='SCANNEN' and app.retry_button.outline_only

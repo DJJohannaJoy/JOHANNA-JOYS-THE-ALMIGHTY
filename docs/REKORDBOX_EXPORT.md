@@ -1,6 +1,6 @@
 # Die erkannte Trackliste als Playlist übernehmen
 
-Im Ergebnis oder im großen Titelfenster **REKORDBOX-EXPORT** öffnen. Alle erkannten Titel erscheinen in Set-Reihenfolge. Eindeutig passende lokale Audiodateien werden automatisch zugeordnet. Original und Remix bleiben getrennt; mehrere mögliche Dateien müssen ausdrücklich zugewiesen werden. Alternativ lässt sich eine bestehende Rekordbox-Bibliotheks-XML zum Dateiabgleich laden.
+Im Bereich **ABLAUF** direkt neben **SCANNEN** oder im großen Titelfenster **REKORDBOX-EXPORT** öffnen. Scannen belegt 3/5 und Export 2/5 der gemeinsamen Knopfzeile. Alle erkannten Titel erscheinen in Set-Reihenfolge. Eindeutig passende lokale Audiodateien werden automatisch zugeordnet. Original und Remix bleiben getrennt; mehrere mögliche Dateien müssen ausdrücklich zugewiesen werden. Alternativ lässt sich eine bestehende Rekordbox-Bibliotheks-XML zum Dateiabgleich laden.
 
 Standardmäßig wird nur eine vollständige Playlist exportiert. Fehlende Dateien lassen sich über **DATEI ZUWEISEN** ergänzen. **TEILEXPORT / SUCHLISTE** erstellt ausdrücklich eine Teilplaylist und eine Liste aller fehlenden Titel mit Suchlinks. Suchlinks erzeugen keine abspielbaren Dateien.
 

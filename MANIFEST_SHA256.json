@@ -173,8 +173,8 @@
     },
     {
       "path": "APP/ui_first_spark.py",
-      "size": 46443,
-      "sha256": "2dfe464fbf8e23755f31347a04534827cc179ecc62226388de0be0cabde3d5e7"
+      "size": 46645,
+      "sha256": "b02d4d86beb99da8e321751d04056f551212ce75ad075d01f4e6ba6601499743"
     },
     {
       "path": "APP/ui_rekordbox.py",
@@ -323,8 +323,8 @@
     },
     {
       "path": "docs/REKORDBOX_EXPORT.md",
-      "size": 2548,
-      "sha256": "49ad47518ff05640a445bc68ae6dcab66690a39e24bc1782ed4fce6c062fd6d6"
+      "size": 2645,
+      "sha256": "d84121216935090c5428ae26600ef079d5b07adc7dfd6ca2a8ed336ad290bc51"
     },
     {
       "path": "docs/SCAN_UPDATE_2026-11-05.md",
@@ -558,8 +558,8 @@
     },
     {
       "path": "tests/ui_smoke.py",
-      "size": 17209,
-      "sha256": "5cd7e962ccacc9be0227bd8faa7bbf9d62b72607f84f3368caa67a503049be95"
+      "size": 18297,
+      "sha256": "ce86457b0f8361196586510a8f18547b1f02a06e166cf8dd7f36e6f5f1105b21"
     }
   ]
 }

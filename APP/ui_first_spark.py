@@ -656,14 +656,12 @@ def build_ui(a):
     # A row spanning all columns makes scanning a single, easy-to-follow path.
     flow_wrap,flow=card(body,18,5,desired_height=160)
     flow_wrap.grid(row=1,column=0,sticky='nsew',pady=(0,10))
-    flowhead=tk.Frame(flow,bg=PANEL);flowhead.pack(fill='x')
+    flow.columnconfigure(0,weight=66,uniform='scan')
+    flow.columnconfigure(1,weight=34,uniform='scan')
+    flowhead=tk.Frame(flow,bg=PANEL);flowhead.grid(row=0,column=0,sticky='ew')
     label(flowhead,'ABLAUF',14,'bold').pack(side='left')
-    flowrow=tk.Frame(flow,bg=PANEL)
-    flowrow.pack(fill='x',expand=False)
-    nodes=tk.Frame(flowrow,bg=PANEL)
-    flowrow.columnconfigure(0,weight=66,uniform='scan')
-    flowrow.columnconfigure(1,weight=34,uniform='scan')
-    nodes.grid(row=0,column=0,sticky='ew',padx=(0,20))
+    nodes=tk.Frame(flow,bg=PANEL)
+    nodes.grid(row=1,column=0,sticky='new',padx=(0,20))
     stagespec=[('setup','DATEIEN\nVORBEREITEN'),('A','SCHNELLSCAN'),
                ('B','TIEFENSCAN 1'),('M','TIEFENSCAN 2'),
                ('S','SHAZAM'),('KI','KI-PRÜFUNG'),('E','ERGEBNIS')]
@@ -672,7 +670,7 @@ def build_ui(a):
     stagebar.pack(fill='x')
     a.stages={key:(StageProxy(stagebar,key,'dot'),StageProxy(stagebar,key,'caption'))
               for key,_ in stagespec}
-    actions=tk.Frame(flowrow,bg=PANEL);actions.grid(row=0,column=1,sticky='ew',padx=(12,12))
+    actions=tk.Frame(flow,bg=PANEL);actions.grid(row=0,column=1,rowspan=2,sticky='new',padx=(12,12))
     actions.columnconfigure(0,weight=1,uniform='actions');actions.columnconfigure(1,weight=0,minsize=50);actions.columnconfigure(2,weight=1,uniform='actions')
     a.save_button=BloodButton(actions,'SPEICHERN',a.save_current_set,height=36,font_size=10,outline_only=True,symbol='save')
     a.save_button.grid(row=0,column=0,sticky='ew',padx=(0,4))
@@ -680,8 +678,15 @@ def build_ui(a):
     a.reset_button.grid(row=0,column=1,sticky='ew',padx=2)
     a.retry_button=BloodButton(actions,'ERNEUT PRÜFEN',a.show_retry_methods,height=36,font_size=10,outline_only=True)
     a.retry_button.grid(row=0,column=2,sticky='ew',padx=(4,0))
-    a.start_button=BloodButton(actions,'SCANNEN',a.start_scan,height=64,font_size=23)
-    a.start_button.grid(row=1,column=0,columnspan=3,sticky='ew',pady=(8,0))
+    primary=tk.Frame(actions,bg=PANEL)
+    primary.grid(row=1,column=0,columnspan=3,sticky='ew',pady=(8,0))
+    primary.columnconfigure(0,weight=3,uniform='primary')
+    primary.columnconfigure(1,weight=0,minsize=8)
+    primary.columnconfigure(2,weight=2,uniform='primary')
+    a.start_button=BloodButton(primary,'SCANNEN',a.start_scan,width=3,height=64,font_size=23)
+    a.start_button.grid(row=0,column=0,sticky='ew')
+    a.rekordbox_button=BloodButton(primary,'REKORDBOX-EXPORT',a.show_rekordbox_export,width=2,height=64,outline_only=True,font_size=10)
+    a.rekordbox_button.grid(row=0,column=2,sticky='ew')
     a.timeline_nodes={}
 
     hits_wrap,hits=card(body,4,4,desired_height=190)
@@ -691,8 +696,6 @@ def build_ui(a):
     a.result_heading=label(hithead,'ERGEBNIS',14,'bold');a.result_heading.pack(side='left')
     a.large_results_button=BloodButton(hithead,'GROSS ANZEIGEN',a.show_results,width=170,height=26,outline_only=True,font_size=9)
     a.large_results_button.pack(side='right',padx=(8,0))
-    a.rekordbox_button=BloodButton(hithead,'REKORDBOX-EXPORT',a.show_rekordbox_export,width=180,height=26,outline_only=True,font_size=9)
-    a.rekordbox_button.pack(side='right',padx=(8,0))
     a.ai_findings_button=BloodButton(hithead,'KI-BEFUNDE',a.show_ai_findings,width=125,height=26,outline_only=True,font_size=9)
     a.ai_findings_button.pack(side='right',padx=(8,0))
     a.stop_button=BloodButton(hithead,'ABBRECHEN',a.stop,width=105,height=31,
