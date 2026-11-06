@@ -6,7 +6,7 @@ import time
 import webbrowser
 import set_library as library
 from ui_text import tr,TEXT as UI_TEXT
-from ui_first_spark import BloodButton,GlowProgress,PANEL,FIELD,TEXT,MUTE,HOT,LINE
+from ui_first_spark import BloodButton,GlowProgress,PANEL,FIELD,TEXT,MUTE,HOT,LINE,resizable_columns
 
 NAMES={'setup':'Dateien vorbereiten','A':'Schnellscan','B':'Tiefenscan 1','M':'Tiefenscan 2','S':'Shazam','E':'Ergebnis','KI':'KI-Prüfung'}
 PLATFORMS=(('soundeo','Soundeo',100),('soundcloud','SoundCloud',124),('youtube','YouTube',100),('beatport','Beatport',100),('spotify','Spotify',100))
@@ -46,6 +46,12 @@ class ResultsWindow:
     def __init__(self,app,supplier,title='Titelliste'):
         self.app,self.supplier=app,supplier;self.last=None;self.rows={}
         self.window=shell(app,title,'1500x800');self.window.minsize(960,600)
+        def closed(event):
+            if event.widget==self.window:
+                for name in ('_refresh_job','_fit_job'):
+                    job=getattr(self,name,None)
+                    if job:self.window.after_cancel(job);setattr(self,name,None)
+        self.window.bind('<Destroy>',closed,add='+')
         bar=tk.Frame(self.window,bg=PANEL);bar.pack(fill='x',padx=20,pady=(0,8))
         tk.Label(bar,text='Titel / Künstler suchen',bg=PANEL,fg=MUTE).pack(side='left',padx=(0,12))
         self.query=tk.StringVar();tk.Entry(bar,textvariable=self.query,bg=FIELD,fg=TEXT,insertbackground=TEXT,font=('Segoe UI',12),relief='flat').pack(side='left',fill='x',expand=True,ipady=7)
@@ -70,7 +76,7 @@ class ResultsWindow:
         for key,name,width in spec:
             anchor='w' if key in ('title','method','source') else 'center'
             self.table.heading(key,text=name,anchor=anchor)
-            self.table.column(key,width=width,minwidth=260 if key=='title' else width,stretch=key=='title',anchor=anchor)
+            self.table.column(key,width=width,minwidth=min(width,60),stretch=key=='title',anchor=anchor)
         vertical=ttk.Scrollbar(frame,orient='vertical',command=self.table.yview)
         horizontal=ttk.Scrollbar(frame,orient='horizontal',command=self.table.xview)
         frame.columnconfigure(0,weight=1);frame.rowconfigure(0,weight=1)
@@ -78,7 +84,7 @@ class ResultsWindow:
         self.table.configure(yscrollcommand=vertical.set,xscrollcommand=horizontal.set)
         self.table.bind('<ButtonRelease-1>',self.click)
         self.table.bind('<<TreeviewSelect>>',lambda e:self.selected())
-        self.table.bind('<Configure>',self.queue_fit)
+        resizable_columns(self.table,app,'large_results',self.queue_fit)
         actions=tk.Frame(self.window,bg=PANEL);actions.pack(fill='x',padx=20,pady=10)
         for index,(_,provider,_) in enumerate(PLATFORMS):
             actions.columnconfigure(index,weight=1,uniform='platforms')
@@ -100,7 +106,7 @@ class ResultsWindow:
         hit=self.current()
         if hit:webbrowser.open(library.search_links(hit)[provider])
     def click(self,event):
-        if self.table.identify_region(event.x,event.y)=='separator':self.queue_fit();return
+        if self.table.identify_region(event.x,event.y)=='separator':return
         row=self.table.identify_row(event.y);column=self.table.identify_column(event.x)
         index=int(column[1:])-8 if column.startswith('#') else -1
         if row and 0<=index<len(PLATFORMS):

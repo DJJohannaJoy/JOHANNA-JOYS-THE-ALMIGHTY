@@ -11,6 +11,7 @@ from pathlib import Path
 from PIL import Image, ImageTk, ImageDraw, ImageFilter
 from functools import lru_cache
 import math
+import json,uuid
 from ui_text import tr,VERSION_LABEL
 
 BASE = '#090A0B'
@@ -501,6 +502,49 @@ def card(parent,padx=14,pady=10,desired_height=170):
     holder=RoundedCard(parent,padx,pady,desired_height)
     return holder,holder.inner
 
+def resizable_columns(table,app,view,on_change):
+    """Keep native heading drags, refresh clipped text and remember each view's widths."""
+    target=app.C_DATA/'spaltenbreiten.json';job=[None];drag=[False];pending_save=[False]
+    def read():
+        try:
+            value=json.loads(target.read_text(encoding='utf-8'))
+            return value if isinstance(value,dict) else {}
+        except (OSError,ValueError):return {}
+    stored=read().get(view,{})
+    if isinstance(stored,dict) and stored:
+        for key in table['columns']:
+            width=stored.get(key)
+            if isinstance(width,int) and 30<=width<=4096:table.column(key,width=width,stretch=False)
+    def update(save=False):
+        pending_save[0]=pending_save[0] or save
+        if job[0] is not None:table.after_cancel(job[0])
+        def finish():
+            job[0]=None
+            if not table.winfo_exists():return
+            if pending_save[0]:
+                pending_save[0]=False
+                data=read();data[view]={key:table.column(key,'width') for key in table['columns']}
+                temporary=target.with_suffix('.'+uuid.uuid4().hex+'.tmp')
+                try:
+                    target.parent.mkdir(parents=True,exist_ok=True)
+                    temporary.write_text(json.dumps(data,indent=2),encoding='utf-8');temporary.replace(target)
+                except OSError:pass
+            on_change()
+        job[0]=table.after(70,finish)
+    def press(event):
+        drag[0]=table.identify_region(event.x,event.y)=='separator'
+        if drag[0]:
+            for key in table['columns']:table.column(key,stretch=False)
+    def release(event):
+        if drag[0]:drag[0]=False;update(save=True)
+    def destroy(event):
+        if event.widget==table and job[0] is not None:table.after_cancel(job[0]);job[0]=None
+    table.bind('<ButtonPress-1>',press,add='+')
+    table.bind('<B1-Motion>',lambda event:update() if drag[0] else None,add='+')
+    table.bind('<ButtonRelease-1>',release,add='+')
+    table.bind('<Configure>',lambda event:update(),add='+')
+    table.bind('<Destroy>',destroy,add='+')
+
 
 def build_ui(a):
     """Construct the approved three-column/header + full-width scanner UI."""
@@ -724,28 +768,7 @@ def build_ui(a):
     a.result_table.configure(xscrollcommand=table_scroll.set)
     a.result_table.pack(fill='both',expand=True)
     a.result_table.bind('<Double-1>',a.show_hit_detail)
-    # Native Treeview rows keep selection/scrolling while receiving real grid lines.
-    a._row_images=[tk.PhotoImage(master=root,width=1,height=30) for _ in range(2)]
-    style.element_create('Almighty.gridrow','image',a._row_images[0],
-                         ('selected',a._row_images[1]),border=(0,0,0,1),sticky='nswe')
-    style.layout('Almighty.Treeview.Row',[('Almighty.gridrow',{'sticky':'nswe'})])
-    def resize_grid(event):
-        w=max(1,event.width)
-        for img,bg in zip(a._row_images,('#101112','#681724')):
-            img.configure(width=w,height=30)
-            img.put(bg,to=(0,0,w,30))
-            img.put(LINE,to=(0,29,w,30))
-            x=0
-            for column in a.result_table['columns'][:-1]:
-                x+=a.result_table.column(column,'width')
-                if 0<x<w:img.put(LINE,to=(x,0,x+1,30))
-        if getattr(a,'_hit_rows',None):
-            old=getattr(a,'_table_render_job',None)
-            if old:
-                try:root.after_cancel(old)
-                except tk.TclError:pass
-            a._table_render_job=root.after(50,lambda:a._render_hits([]))
-    a.result_table.bind('<Configure>',resize_grid,add='+')
+    resizable_columns(a.result_table,a,'results',lambda:a._render_hits([]) if getattr(a,'_hit_rows',None) else None)
     # Empty rows are visual grid guides, never fabricated recognitions;
     # scanner._render_hits clears them before showing actual results.
     a.result_table.tag_configure('empty0',background='#101112')

@@ -173,13 +173,13 @@
     },
     {
       "path": "APP/ui_first_spark.py",
-      "size": 46645,
-      "sha256": "b02d4d86beb99da8e321751d04056f551212ce75ad075d01f4e6ba6601499743"
+      "size": 47714,
+      "sha256": "44f4193442e806b4bbb61d03b98d6cf9fb72fe930198b6c5d630c4f8b3bd69e7"
     },
     {
       "path": "APP/ui_rekordbox.py",
-      "size": 9307,
-      "sha256": "c244499c880faeb319ad2736194be5b4c7cf5a3ec8561a1ef8a63e15a5fa3cf3"
+      "size": 9412,
+      "sha256": "0ddd9b8146188e1b4673fa969267c43a6fa6f91c5da5fc912564281eeac140f4"
     },
     {
       "path": "APP/ui_text.py",
@@ -188,8 +188,8 @@
     },
     {
       "path": "APP/ui_workspace.py",
-      "size": 18736,
-      "sha256": "73779d58da413841d20b77b0fd12a5d75ee7ae3a60a8d5ecfd83cd43528c78fc"
+      "size": 19047,
+      "sha256": "85e3c507c9e5af771c2d1ba9da6ea44ccdc255769e7001605ed12d0561674908"
     },
     {
       "path": "FORMAT_BPM_PRUEFEN_UND_INSTALLIEREN.cmd",
@@ -198,8 +198,8 @@
     },
     {
       "path": "README.md",
-      "size": 3545,
-      "sha256": "4425869e75ac35280f7fea4f0ad624cf19c557b6644fd1b7a42eea4d91481c62"
+      "size": 3678,
+      "sha256": "108cc0e0ccc859f3256b162068e186216324fd404c6d3a78decfde507a85a870"
     },
     {
       "path": "START_HIER.txt",
@@ -485,6 +485,11 @@
       "path": "tests/ai_visible_progress.py",
       "size": 3579,
       "sha256": "a1f5962d522e3e24832ac9cbbb6a1d296ccce92776924965008c2fb7f28c64f2"
+    },
+    {
+      "path": "tests/column_resize.py",
+      "size": 3417,
+      "sha256": "53e209c2ba08d0f615b6e3ac483268fc0cb4c21ccf6643052c07f8ab12e5d1f0"
     },
     {
       "path": "tests/command_encoding.py",

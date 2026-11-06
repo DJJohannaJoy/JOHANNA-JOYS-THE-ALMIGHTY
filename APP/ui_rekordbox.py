@@ -3,7 +3,7 @@ import json,tkinter as tk,threading,queue
 from tkinter import ttk,filedialog
 from pathlib import Path
 from ui_workspace import shell
-from ui_first_spark import BloodButton,PANEL,FIELD,TEXT,MUTE
+from ui_first_spark import BloodButton,PANEL,FIELD,TEXT,MUTE,resizable_columns
 from ui_text import tr
 import rekordbox_export as E
 
@@ -31,7 +31,8 @@ def show_export(app,tracks,name):
     style.configure('Export.TCombobox',fieldbackground=FIELD,background=PANEL,foreground=TEXT,arrowcolor=TEXT)
     style.map('Export.TCombobox',fieldbackground=[('readonly',FIELD)],foreground=[('readonly',TEXT)],selectbackground=[('readonly','#812031')],selectforeground=[('readonly',TEXT)])
     table=ttk.Treeview(frame,columns=('number','title','state','path'),show='headings',style='Export.Treeview')
-    for key,title,width in [('number','NR.',45),('title','TITEL',360),('state','ZUORDNUNG',245),('path','AUDIODATEI',450)]:table.heading(key,text=title,anchor='w');table.column(key,width=width,stretch=key in ('title','path'))
+    for key,title,width in [('number','NR.',45),('title','TITEL',360),('state','ZUORDNUNG',245),('path','AUDIODATEI',450)]:table.heading(key,text=title,anchor='w');table.column(key,width=width,minwidth=min(width,60),stretch=key in ('title','path'))
+    resizable_columns(table,app,'rekordbox_export',lambda:None)
     frame.rowconfigure(0,weight=1);frame.columnconfigure(0,weight=1)
     vertical=ttk.Scrollbar(frame,orient='vertical',command=table.yview);horizontal=ttk.Scrollbar(frame,orient='horizontal',command=table.xview)
     table.grid(row=0,column=0,sticky='nsew');vertical.grid(row=0,column=1,sticky='ns');horizontal.grid(row=1,column=0,sticky='ew')

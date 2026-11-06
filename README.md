@@ -19,6 +19,7 @@ Online-Erkennung benötigt Internet. Die optionale lokale KI benötigt ein separ
 - Schnellscan und Tempo-Abgleich mit audfprint; Tiefenscan 2 mit mix-id und zusätzliche ShazamIO-Proben laufen parallel.
 - Begrenzte parallele Online-Anfragen, gemeinsame Dienstlimits, Wiederholungen und gespeicherte erfolgreiche Proben.
 - Nummerierte Ergebnisse mit Methoden, Quellen, Dateiformat und BPM. Originale und Remixes bleiben unterscheidbar.
+- Spaltenbreiten lassen sich im Tabellenkopf ziehen und werden für Hauptfenster, große Titelliste und Export getrennt gespeichert.
 - Einzelne Methoden erneut prüfen, ohne den kompletten Scan zu wiederholen.
 - Lokale KI prüft Belege, Versionskonflikte und zusätzliche Audio-Referenzen im Hintergrund. Modellmeinungen ersetzen keine Audio-Nachweise; unklare Fälle bleiben sichtbar.
 - KI-Fallzahlen, aktueller Arbeitsschritt, Sekundenanzeige und tatsächliche Teilfortschritte direkt im Hauptfenster.
