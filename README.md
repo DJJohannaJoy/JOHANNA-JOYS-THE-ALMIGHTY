@@ -1,6 +1,8 @@
 # JOHANNA JOY'S THE ALMIGHTY
 
-**Version 1.14 · EMBER · Windows x64**
+**Version 1.14.1 · EMBER · Windows x64**
+
+Shazam verarbeitet auch nach mehreren Zeitüberschreitungen alle übrigen Ausschnitte. Fehlgeschlagene Proben werden anschließend automatisch erneut geprüft; erfolgreiche Antworten bleiben gespeichert. Dienstfehler werden mit Verarbeitungsschritt angezeigt und nicht als „kein Treffer“ gespeichert. Shazams Anfragelimit wird automatisch berücksichtigt.
 
 [Fertiges Programm herunterladen](https://github.com/DJJohannaJoy/JOHANNA-JOYS-THE-ALMIGHTY/releases/latest)
 

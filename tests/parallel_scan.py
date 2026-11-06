@@ -69,7 +69,8 @@ with patch.dict(sys.modules,{'shazamio':types.SimpleNamespace(Shazam=Failure)}),
     counts=[]
     hits,errors=asyncio.run(C.shazam_probes(Path('set.wav'),list(range(10)),cfg,lambda _:None,cancel,
                          progress=lambda d,t:counts.append(d)))
-assert 6<=Failure.count<=12 and counts[-1]==0 and any('drei' in e for e in errors)
+assert Failure.count==30 and counts[-1]==10 and len(errors)==10
+assert all('Online-Antwort' in e and 'drei Versuchen' in e for e in errors)
 class Hanging(Client):
     async def recognize(self,path):await asyncio.sleep(100)
 cancel_test=threading.Event();timer=threading.Timer(.15,cancel_test.set);timer.start();started=time.monotonic()
@@ -78,7 +79,49 @@ with patch.dict(sys.modules,{'shazamio':types.SimpleNamespace(Shazam=Hanging)}),
     except RuntimeError as exc:assert 'abgebrochen' in str(exc)
     else:raise AssertionError('Online cancellation was ignored')
 assert time.monotonic()-started<2
-print('ONLINE FAILURE HANDLING OK: bounded retry, stop after three failed probes, cancel in-flight requests promptly.')
+print('ONLINE FAILURE HANDLING OK: all excerpts attempted despite failures, bounded deferred retry, truthful errors, prompt cancellation.')
+
+# A timeout burst in the first three excerpts must recover without losing later jobs.
+class Burst(Client):
+    attempts={}
+    async def recognize(self,path):
+        n=self.attempts.get(path,0)+1;self.attempts[path]=n
+        if int(Path(path).stem.split('-')[-1])<=3 and n<=2:raise TimeoutError()
+        return {'track':{'title':'Recovered','subtitle':'Artist'}}
+with patch.dict(sys.modules,{'shazamio':types.SimpleNamespace(Shazam=Burst)}),patch.object(C,'run_cmd',side_effect=extract),patch.object(C.tempfile,'TemporaryDirectory',scratch_directory):
+    counts=[]
+    hits,errors=asyncio.run(C.shazam_probes(Path('set.wav'),list(range(10)),cfg,lambda _:None,threading.Event(),progress=lambda d,t:counts.append(d)))
+assert len(hits)==10 and not errors and counts[-1]==10 and counts==sorted(counts)
+assert len(Burst.attempts)==10 and sum(Burst.attempts.values())==16
+
+# One persistently throttled sample cannot retain a worker forever.
+class Throttled(Client):
+    attempts={}
+    async def recognize(self,path):
+        self.attempts[path]=self.attempts.get(path,0)+1
+        if Path(path).stem.endswith('0001'):raise O.RateLimited('HTTP 429',0)
+        return {'track':{'title':'Available','subtitle':'Artist'}}
+class NoDelay(O.RequestGate):
+    def recover(self,error,epoch):
+        super().recover(error,epoch);self.interval=0
+with patch.dict(sys.modules,{'shazamio':types.SimpleNamespace(Shazam=Throttled)}),patch.object(C,'run_cmd',side_effect=extract),patch.object(C.tempfile,'TemporaryDirectory',scratch_directory):
+    counts=[]
+    hits,errors=asyncio.run(C.shazam_probes(Path('set.wav'),list(range(6)),{**cfg,'_online_gate':NoDelay(4,0)},lambda _:None,threading.Event(),progress=lambda d,t:counts.append(d)))
+assert len(hits)==5 and len(errors)==1 and '429' in errors[0] and counts[-1]==6
+assert sorted(Throttled.attempts.values())==[1,1,1,1,1,3]
+
+class InvalidReply(Client):
+    async def recognize(self,path):return {'error':'service unavailable'}
+with patch.dict(sys.modules,{'shazamio':types.SimpleNamespace(Shazam=InvalidReply)}),patch.object(C,'run_cmd',side_effect=extract),patch.object(C.tempfile,'TemporaryDirectory',scratch_directory),patch.object(O,'save_probe') as save:
+    hits,errors=asyncio.run(C.shazam_probes(Path('set.wav'),[0],cfg,lambda _:None,threading.Event()))
+    assert not hits and len(errors)==1 and 'Ungültige' in errors[0]
+    save.assert_not_called()
+class NoMatch(Client):
+    async def recognize(self,path):return {'matches':[]}
+with patch.dict(sys.modules,{'shazamio':types.SimpleNamespace(Shazam=NoMatch)}),patch.object(C,'run_cmd',side_effect=extract),patch.object(C.tempfile,'TemporaryDirectory',scratch_directory),patch.object(O,'save_probe') as save:
+    hits,errors=asyncio.run(C.shazam_probes(Path('set.wav'),[0],cfg,lambda _:None,threading.Event()))
+    assert not hits and not errors
+    save.assert_called_once_with(None,None)
 
 class Transient(Client):
     attempts={}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Johanna Joy's THE ALMIGHTY · 1.14 EMBER | Windows | Anthrazit + Karminrot.
+"""Johanna Joy's THE ALMIGHTY · 1.14.1 EMBER | Windows | Anthrazit + Karminrot.
 Prototype, source included. Never overwrites the user's source audio/library.
 """
 from __future__ import annotations

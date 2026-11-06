@@ -1,5 +1,5 @@
 {
-  "version": "1.14.0",
+  "version": "1.14.1",
   "regression_tests": 21,
   "passed": true,
   "packaged_program": {
@@ -16,5 +16,20 @@
       "isolated_test_data": true
     },
     "python": "3.12.10"
+  },
+  "shazam_regressions": [
+    "all excerpts continue after timeout bursts",
+    "deferred retries reuse fingerprints",
+    "persistent HTTP 429 terminates per excerpt",
+    "service errors never cached as no-match",
+    "valid no-match cached",
+    "cancellation remains immediate"
+  ],
+  "shazam_live": {
+    "probes": 50,
+    "processed": 50,
+    "hits": 38,
+    "errors": 0,
+    "seconds": 539.19
   }
 }

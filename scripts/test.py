@@ -8,5 +8,6 @@ if a.components:
     components=a.components.resolve();env['ALMIGHTY_TEST_COMPONENTS']=str(components)
     env['PATH']=str(components/'tools/ffmpeg')+os.pathsep+str(components/'tools/node')+os.pathsep+env.get('PATH','')
 tests=sorted(file for file in (root/'tests').glob('*.py') if file.name!='test_paths.py')
-for file in tests:subprocess.run([sys.executable,'-X','utf8',str(file)],cwd=root,env=env,check=True)
+bootstrap="import sys,runpy;from pathlib import Path;p=Path(sys.argv[1]);sys.path.insert(0,str(p.parent));runpy.run_path(str(p),run_name='__main__')"
+for file in tests:subprocess.run([sys.executable,'-X','utf8','-c',bootstrap,str(file)],cwd=root,env=env,check=True)
 print(json.dumps({'tests':len(tests),'passed':True}),flush=True)

@@ -44,6 +44,20 @@ async def rate_response():
     else:raise AssertionError('HTTP 429 was silently retried')
     assert client.session.calls==1
 asyncio.run(rate_response())
+class ValidResponse(Response):
+    status=200;content_type='application/json'
+    def raise_for_status(self):pass
+    async def json(self):return {'matches':[]}
+class CaptureSession:
+    def request(self,*args,**kwargs):self.payload=kwargs['json'];return ValidResponse()
+async def request_timestamp():
+    client=O.ShazamHTTP();client.session=CaptureSession()
+    original={'timestamp':1,'signature':{'uri':'data:fixture','samplems':12000}}
+    with patch.object(O.time,'time',return_value=1700000000):
+        assert await client.request('POST','https://fixture.invalid',json=original)=={'matches':[]}
+    assert client.session.payload['timestamp']==1700000000000
+    assert client.session.payload['signature']==original['signature'] and original['timestamp']==1
+asyncio.run(request_timestamp())
 with scratch() as td:
     root=Path(td);sample=root/'mix.wav';sample.write_bytes(b'fixture')
     with patch.object(C,'DATA',root/'cache'),patch.dict(sys.modules,{'shazamio':types.SimpleNamespace(Shazam=Client)}),patch.object(C,'run_cmd',side_effect=extract),patch.object(C.tempfile,'TemporaryDirectory',scratch):

@@ -1,7 +1,7 @@
 """Build the complete relocatable Windows application; never include personal data."""
 from pathlib import Path
 import argparse,hashlib,json,os,shutil,subprocess,sys
-BRAND="JOHANNA JOY'S THE ALMIGHTY";VERSION='1.14.0'
+BRAND="JOHANNA JOY'S THE ALMIGHTY";VERSION='1.14.1'
 root=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--components',type=Path,required=True)
 p.add_argument('--output',type=Path,default=root/'outputs'/BRAND)

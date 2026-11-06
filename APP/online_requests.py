@@ -145,10 +145,15 @@ class ShazamHTTP:
     """Single HTTP attempt: no library's hidden twenty-attempt retry loop."""
     async def __aenter__(self):
         import aiohttp
-        self.session=aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10,connect=5))
+        self.session=aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20,connect=8))
         return self
     async def __aexit__(self,*args):await self.session.close()
     async def request(self,method,url,**kwargs):
+        payload=kwargs.get('json')
+        if isinstance(payload,dict) and 'signature' in payload and 'timestamp' in payload:
+            # Fingerprints are reusable; the request time must reflect the send,
+            # including time spent waiting for service recovery or other probes.
+            kwargs['json']={**payload,'timestamp':int(time.time()*1000)}
         async with self.session.request(method,url,**kwargs) as response:
             if response.status==429:
                 retry=response.headers.get('Retry-After','')

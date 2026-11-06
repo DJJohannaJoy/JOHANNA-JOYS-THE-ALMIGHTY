@@ -24,7 +24,7 @@ try:
                 header=app.header
                 assert header.version_bounds[2]<=header.language_bounds[0]-8
                 assert header.language_bounds[2]<header.library_bounds[0]<header.gear_bounds[0]
-                assert header.itemcget(header.find_withtag('version')[0],'text')=='Version 1.14 - EMBER'
+                assert header.itemcget(header.find_withtag('version')[0],'text')=='Version 1.14.1 - EMBER'
                 icon=app.reset_button.bbox('reset_icon')
                 assert 2<=icon[0]<icon[2]<=app.reset_button.winfo_width()-2
                 assert 2<=icon[1]<icon[3]<=app.reset_button.winfo_height()-2

@@ -634,13 +634,12 @@ async def shazam_probes(mix: Path, points: list[float], cfg: dict, log, cancel: 
     semaphore=asyncio.Semaphore(max(1,min(4,int(cfg.get('shazam_workers',4)))))
     gate=cfg.get('_online_gate') or O.RequestGate()
     completed=0
-    failures=0;stopped=False
+    pending_retry={};prepared={}
     with tempfile.TemporaryDirectory(prefix="set-shazam-") as tmp:
         tmp=Path(tmp)
-        async def probe(i,t):
-            nonlocal completed,failures,stopped
+        async def probe(i,t,final_attempt=False):
+            nonlocal completed
             async with semaphore:
-                if stopped:return
                 if cancel.is_set():
                     raise RuntimeError("Scan wurde abgebrochen.")
                 cache=O.probe_cache(DATA,mix,t,'ShazamIO-12s')
@@ -662,17 +661,23 @@ async def shazam_probes(mix: Path, points: list[float], cfg: dict, log, cancel: 
                 args = [ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-ss", str(t),
                         "-i", str(mix), "-t", "12", "-map", "0:a:0", "-vn", "-ac", "1",
                         "-ar", "16000", "-c:a", "pcm_s16le", str(chunk)]
-                code, msg = await asyncio.to_thread(run_cmd, args, env, cancel=cancel,idle_timeout=45)
                 ok=False
+                phase='Ausschnitt vorbereiten'
                 try:
+                    if not chunk.is_file():
+                        code,msg=await asyncio.to_thread(run_cmd,args,env,cancel=cancel,idle_timeout=45)
+                    else:code,msg=0,''
                     if code!=0 or not chunk.is_file():raise RuntimeError('Ausschnitt nicht lesbar: '+msg[-200:])
                     detail(1,'Ausschnitt bereit')
                     # Local fingerprint work runs ahead of the shared HTTP budget.
                     preparer=Shazam(http_client=O.ShazamHTTP())
-                    signature=None
-                    if hasattr(preparer,'core_recognizer'):
+                    signature=prepared.get(i)
+                    phase='Fingerabdruck berechnen'
+                    if signature is None and hasattr(preparer,'core_recognizer'):
                         signature=await asyncio.wait_for(preparer.core_recognizer.recognize_path(value=str(chunk)),timeout=30)
+                        prepared[i]=signature
                     detail(2,'Fingerabdruck bereit · Online-Suche')
+                    phase='Online-Antwort'
                     async def request():
                         async with O.ShazamHTTP() as http:
                             async with Shazam(http_client=http) as client:
@@ -684,15 +689,19 @@ async def shazam_probes(mix: Path, points: list[float], cfg: dict, log, cancel: 
                         epoch=await gate.async_acquire(cancel,lambda s:log('Shazam: '+s))
                         try:
                             log(f'Shazam {i}/{len(points)} {hhmmss(t)}: Anfrage'+(' · erneuter Versuch' if attempt else ''))
-                            response=await asyncio.wait_for(request(),timeout=max(3,min(35,float(cfg.get('shazam_timeout',20)))))
+                            response=await asyncio.wait_for(request(),timeout=max(3,min(35,float(cfg.get('shazam_timeout',25)))))
+                            if not isinstance(response,dict) or not (isinstance(response.get('track'),dict) and response['track'].get('title')) and response.get('matches')!=[]:
+                                raise RuntimeError('Ungültige Erkennungsantwort; kein bestätigtes Suchergebnis')
                             gate.successful(epoch)
                             break
                         except O.RateLimited as exc:
                             gate.recover(exc,epoch)
+                            attempt+=1
+                            if attempt>=(1 if final_attempt else 2):raise
                             log('Shazam: Anfragelimit · Scan bleibt aktiv und wiederholt automatisch')
                         except Exception:
                             attempt+=1
-                            if attempt>=2:raise
+                            if attempt>=(1 if final_attempt else 2):raise
                             log(f'Shazam {i}/{len(points)}: kurzzeitiger Fehler · ein Wiederholungsversuch')
                         finally:gate.release()
                         await asyncio.sleep(.75)
@@ -708,19 +717,24 @@ async def shazam_probes(mix: Path, points: list[float], cfg: dict, log, cancel: 
                     else:
                         O.save_probe(cache,None)
                         log(f"Shazam {i}/{len(points)} {hhmmss(t)}: kein Treffer")
-                    failures=0
+                    pending_retry.pop(i,None)
                     ok=True
                 except Exception as exc:
                     if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
-                    errors.append(f"Shazam {hhmmss(t)}: {type(exc).__name__}: {exc}")
-                    failures+=1
-                    if failures>=3 and not stopped:
-                        stopped=True
-                        errors.append('ShazamIO nach drei aufeinanderfolgenden Fehlern beendet; verbleibende Proben wurden nicht abgefragt.')
-                    log(f"Shazam {i}/{len(points)} {hhmmss(t)}: Fehler (Details im Ergebnis)")
-                    detail(0,'Fehler · '+str(exc)[:90])
+                    description=str(exc) or ('Zeitüberschreitung ohne Antwort' if isinstance(exc,TimeoutError) else 'ohne Fehlerbeschreibung')
+                    reason=f'{phase}: {type(exc).__name__}: {description}'
+                    if final_attempt:
+                        summary='nach drei Versuchen nicht erreichbar' if phase=='Online-Antwort' else 'erneute Verarbeitung fehlgeschlagen'
+                        errors.append(f'Shazam {hhmmss(t)}: {reason} · {summary}')
+                        pending_retry.pop(i,None)
+                        log(f'Shazam {i}/{len(points)} {hhmmss(t)}: {reason}')
+                        detail(0,'Fehler · '+reason[:110])
+                    else:
+                        pending_retry[i]=t
+                        log(f'Shazam {i}/{len(points)} {hhmmss(t)}: {reason} · automatischer Wiederholungsversuch nach den übrigen Ausschnitten')
+                        detail(2,'Wiederholungsversuch vorgemerkt · '+reason[:90])
                 finally:
-                    if ok:completed+=1
+                    if ok or final_attempt:completed+=1
                     if ok:detail(3,'geprüft')
                     if progress:progress(completed,len(points))
                 await asyncio.sleep(0.5)
@@ -730,6 +744,14 @@ async def shazam_probes(mix: Path, points: list[float], cfg: dict, log, cancel: 
                 if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
                 _,pending=await asyncio.wait(tasks,timeout=.1)
                 # Read completed exceptions before dropping task references.
+                for task in set(tasks)-pending:task.result()
+                tasks=list(pending)
+            # A failing excerpt must never prevent the remaining set from running.
+            # Retry only unsuccessful excerpts; reuse their audio and fingerprints.
+            tasks=[asyncio.create_task(probe(i,t,True)) for i,t in list(pending_retry.items())]
+            while tasks:
+                if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
+                _,pending=await asyncio.wait(tasks,timeout=.1)
                 for task in set(tasks)-pending:task.result()
                 tasks=list(pending)
         finally:
