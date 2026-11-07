@@ -689,23 +689,45 @@ def build_ui(a):
     installed=local_ai.find_lmstudio(a.cfg)
     BloodButton(ai,'LM STUDIO ÖFFNEN' if installed else 'LM STUDIO ZUWEISEN',a.open_local_ai,height=42,
                 outline_only=True,font_size=11).pack(fill='x',pady=(3,6))
-    BloodButton(ai,'MODELL / VERBINDUNG',a.configure_local_ai,height=42,
-                outline_only=True,font_size=11).pack(fill='x',pady=(3,6))
-    BloodButton(ai,'KI-NACHPRÜFUNG',a.show_ai_findings,height=42,
-                outline_only=True,font_size=11).pack(fill='x',pady=(3,5))
+    ai_actions=tk.Frame(ai,bg=PANEL)
+    ai_actions.pack(fill='x',pady=(3,6))
+    ai_actions.columnconfigure(0,weight=1,uniform='ai_actions')
+    ai_actions.columnconfigure(1,weight=1,uniform='ai_actions')
+    a.ai_model_button=BloodButton(ai_actions,'Modell Verbindung',a.configure_local_ai,width=1,height=40,
+                                 outline_only=True,font_size=9)
+    a.ai_model_button.grid(row=0,column=0,sticky='ew',padx=(0,3))
+    a.ai_review_button=BloodButton(ai_actions,'KI-NACHPRÜFUNG',a.show_ai_findings,width=1,height=40,
+                                  outline_only=True,font_size=9)
+    a.ai_review_button.grid(row=0,column=1,sticky='ew',padx=(3,0))
     a.ai_status_text=tk.StringVar(value='LM Studio erkannt · Modell wird geprüft' if installed else 'Optional · LM Studio zuweisen')
-    tk.Label(ai,textvariable=a.ai_status_text,bg=PANEL,fg=MUTE,
-             font=('Segoe UI',8),wraplength=260,height=1,anchor='w',justify='left').pack(fill='x')
+    a.ai_status_frame=tk.Frame(ai,bg=FIELD,highlightthickness=1,highlightbackground=LINE)
+    a.ai_status_frame.pack(fill='both',expand=True,pady=(2,1))
+    a.ai_status_box=tk.Text(a.ai_status_frame,bg=FIELD,fg=TEXT,font=('Segoe UI',9),
+                            wrap='word',height=3,width=1,padx=9,pady=7,bd=0,
+                            highlightthickness=0,takefocus=0,state='disabled')
+    a.ai_status_box.pack(fill='both',expand=True)
+    def refresh_ai_status(*unused):
+        a.ai_status_box.configure(state='normal')
+        a.ai_status_box.delete('1.0','end')
+        a.ai_status_box.insert('1.0',a.ai_status_text.get())
+        a.ai_status_box.configure(state='disabled')
+    a._ai_status_trace=a.ai_status_text.trace_add('write',refresh_ai_status)
+    refresh_ai_status()
 
     # A row spanning all columns makes scanning a single, easy-to-follow path.
     flow_wrap,flow=card(body,18,5,desired_height=160)
     flow_wrap.grid(row=1,column=0,sticky='nsew',pady=(0,10))
     flow.columnconfigure(0,weight=66,uniform='scan')
     flow.columnconfigure(1,weight=34,uniform='scan')
-    flowhead=tk.Frame(flow,bg=PANEL);flowhead.grid(row=0,column=0,sticky='ew')
+    flow.rowconfigure(0,weight=1)
+    flow_path=tk.Frame(flow,bg=PANEL)
+    flow_path.grid(row=0,column=0,sticky='nsew')
+    flow_path.columnconfigure(0,weight=1)
+    flow_path.rowconfigure(1,weight=1)
+    flowhead=tk.Frame(flow_path,bg=PANEL);flowhead.grid(row=0,column=0,sticky='ew')
     label(flowhead,'ABLAUF',14,'bold').pack(side='left')
-    nodes=tk.Frame(flow,bg=PANEL)
-    nodes.grid(row=1,column=0,sticky='new',padx=(0,20))
+    nodes=tk.Frame(flow_path,bg=PANEL)
+    nodes.grid(row=1,column=0,sticky='ew',padx=(0,20))
     stagespec=[('setup','DATEIEN\nVORBEREITEN'),('A','SCHNELLSCAN'),
                ('B','TIEFENSCAN 1'),('M','TIEFENSCAN 2'),
                ('S','SHAZAM'),('KI','KI-PRÜFUNG'),('E','ERGEBNIS')]
@@ -714,13 +736,13 @@ def build_ui(a):
     stagebar.pack(fill='x')
     a.stages={key:(StageProxy(stagebar,key,'dot'),StageProxy(stagebar,key,'caption'))
               for key,_ in stagespec}
-    actions=tk.Frame(flow,bg=PANEL);actions.grid(row=0,column=1,rowspan=2,sticky='new',padx=(12,12))
-    actions.columnconfigure(0,weight=1,uniform='actions');actions.columnconfigure(1,weight=0,minsize=50);actions.columnconfigure(2,weight=1,uniform='actions')
-    a.save_button=BloodButton(actions,'SPEICHERN',a.save_current_set,height=36,font_size=10,outline_only=True,symbol='save')
+    actions=tk.Frame(flow,bg=PANEL);actions.grid(row=0,column=1,sticky='ew',padx=(12,12))
+    for column in range(3):actions.columnconfigure(column,weight=1,uniform='actions')
+    a.save_button=BloodButton(actions,'SPEICHERN',a.save_current_set,width=1,height=36,font_size=9,outline_only=True)
     a.save_button.grid(row=0,column=0,sticky='ew',padx=(0,4))
-    a.reset_button=BloodButton(actions,'',a.reset_set,width=48,height=36,font_size=22,outline_only=True,symbol='reset')
+    a.reset_button=BloodButton(actions,'RESET',a.reset_set,width=1,height=36,font_size=9,outline_only=True)
     a.reset_button.grid(row=0,column=1,sticky='ew',padx=2)
-    a.retry_button=BloodButton(actions,'ERNEUT PRÜFEN',a.show_retry_methods,height=36,font_size=10,outline_only=True)
+    a.retry_button=BloodButton(actions,'ERNEUT PRÜFEN',a.show_retry_methods,width=1,height=36,font_size=9,outline_only=True)
     a.retry_button.grid(row=0,column=2,sticky='ew',padx=(4,0))
     primary=tk.Frame(actions,bg=PANEL)
     primary.grid(row=1,column=0,columnspan=3,sticky='ew',pady=(8,0))

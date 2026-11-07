@@ -25,9 +25,27 @@ try:
                 assert header.version_bounds[2]<=header.language_bounds[0]-8
                 assert header.language_bounds[2]<header.library_bounds[0]<header.gear_bounds[0]
                 assert header.itemcget(header.find_withtag('version')[0],'text')=='Version 1.14.1 - EMBER'
-                icon=app.reset_button.bbox('reset_icon')
-                assert 2<=icon[0]<icon[2]<=app.reset_button.winfo_width()-2
-                assert 2<=icon[1]<icon[3]<=app.reset_button.winfo_height()-2
+                buttons=(app.save_button,app.reset_button,app.retry_button)
+                widths=[b.winfo_width() for b in buttons]
+                assert max(widths)-min(widths)<=1,(geometry,widths)
+                assert app.reset_button.caption=='RESET' and app.reset_button.symbol is None
+                assert app.save_button.symbol is None
+                for button in (*buttons,app.ai_model_button,app.ai_review_button):
+                    text=[i for i in button.find_all() if button.type(i)=='text']
+                    box=button.bbox(text[0])
+                    assert 0<=box[0]<box[2]<=button.winfo_width(),(geometry,button.caption,box)
+                assert abs(app.ai_model_button.winfo_width()-app.ai_review_button.winfo_width())<=1
+                assert app.ai_model_button.winfo_rooty()==app.ai_review_button.winfo_rooty()
+                assert app.ai_status_box.winfo_height()>=50,(geometry,app.ai_status_box.winfo_height())
+                assert app.ai_status_box.winfo_rooty()>app.ai_model_button.winfo_rooty()+app.ai_model_button.winfo_height()
+                app.ai_status_text.set('LM Studio: google/gemma-4-e4b · geladen\nModell verbunden · Nachprüfung bereit')
+                assert app.ai_status_box.get('1.0','end-1c')==app.ai_status_text.get()
+                assert app.ai_status_box.cget('state')=='disabled'
+                flow=app.start_button.master.master.master
+                group=app.start_button.master.master
+                center=lambda w:w.winfo_rooty()+w.winfo_height()/2
+                assert abs(center(group)-center(flow))<=1,(geometry,center(group),center(flow))
+                assert abs(center(app.stagebar)-center(group))<20
             app._render_hits([{'source':'mix-id','artist':'Tiefenscan Artist','title':'Ergebnis Song','time':0}])
             originals=repr(app.current_hits)
             app.toggle_language();app.root.update()
