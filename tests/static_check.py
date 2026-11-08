@@ -19,3 +19,15 @@ assert (CODE/'assets/almighty_icon.ico').is_file()
 print(f'STATIC CHECK OK: {len(modules)} Python modules parse + required design images present.')
 
 assert (CODE/'mixid_probe.mjs').is_file()
+
+# The first ICO frame must be large enough for viewers, while Windows retains native sizes.
+import struct
+from PIL import Image
+icon=(CODE/'assets/almighty_icon.ico').read_bytes()
+assert struct.unpack_from('<HH',icon)==(0,1) and icon[6:8]==b'\0\0'
+with Image.open(CODE/'assets/almighty_icon.ico') as picture:
+    assert {(16,16),(20,20),(24,24),(32,32),(40,40),(48,48),(64,64),(96,96),(128,128),(256,256)}==picture.ico.sizes()
+    for size in picture.ico.sizes():assert picture.ico.getimage(size).size==size
+with Image.open(CODE/'assets/almighty_icon.png') as picture:assert min(picture.size)>=1024
+with Image.open(CODE/'assets/johanna_joy_logo.png') as picture:assert picture.mode=='RGBA' and picture.getchannel('A').getextrema()==(0,255)
+print('BRAND ASSETS OK: HD master, largest-first ICO with ten genuine sizes and transparent source logo.')

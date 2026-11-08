@@ -190,6 +190,20 @@ class Header(tk.Canvas):
         # Reuse clean matrix texture so the banner runs to both window edges.
         self._source.paste(self._source.crop((1377,0,1460,self._source.height)),(1460,0))
         self._source.paste(self._source.crop((1050,75,1365,103)).resize((315,38)),(1050,36))
+        # Render the supplied transparent logo as its own sharp, fitted layer.
+        self._brand_logo=Image.open(source.parent/'johanna_joy_logo.png').convert('RGBA')
+        self._brand_logo=self._brand_logo.crop(self._brand_logo.getchannel('A').getbbox())
+        logo_left,logo_right=154,565
+        back=Image.new('RGB',(logo_right-logo_left,self._source.height-8))
+        pen=ImageDraw.Draw(back)
+        for yy in range(back.height):
+            shade=round(3+7*abs(2*yy/max(1,back.height-1)-1))
+            pen.line((0,yy,back.width,yy),fill=(shade,shade,shade+1))
+        self._source.paste(back,(logo_left,4))
+        fitted=self._brand_logo.copy()
+        fitted.thumbnail((397,self._source.height-12),Image.Resampling.LANCZOS)
+        self._source.paste(fitted,(logo_left+(logo_right-logo_left-fitted.width)//2,
+                                  (self._source.height-fitted.height)//2),fitted)
         self._img=None
         self._last_width=0
         self.gear_bounds=(0,0,0,0)
