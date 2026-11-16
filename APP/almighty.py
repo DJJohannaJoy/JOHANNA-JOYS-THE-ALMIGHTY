@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Johanna Joy's THE ALMIGHTY · 1.14.2 EMBER | Windows | Anthrazit + Karminrot.
+"""Johanna Joy's THE ALMIGHTY · 1.14.3 EMBER | Windows | Anthrazit + Karminrot.
 Prototype, source included. Never overwrites the user's source audio/library.
 """
 from __future__ import annotations
@@ -152,7 +152,7 @@ def do_match(parts: list[Path], factor: float, kind: str, directory: Path, env: 
 
 
 def split_audio(mix: Path, directory: Path, cfg: dict, factor: float,
-                kind: str, cancel: threading.Event):
+                kind: str, cancel: threading.Event, on_part=None):
     env = C.env_with_ffmpeg(cfg['ffmpeg_dir'])
     ffmpeg = shutil.which('ffmpeg', path=env['PATH'])
     if not ffmpeg:
@@ -169,11 +169,23 @@ def split_audio(mix: Path, directory: Path, cfg: dict, factor: float,
                '-ac', '1', '-ar', '11025', '-c:a', 'pcm_s16le', '-f', 'segment',
                '-segment_time', str(C.SEGMENT_SECONDS), '-reset_timestamps', '1',
                str(directory/'part-%04d.wav')]
-    code, output = C.run_cmd(command, env, cancel=cancel)
+    if on_part:
+        command[-1:-1]=['-segment_list','pipe:1','-segment_list_type','csv','-segment_list_flags','+live']
+    def closed_segment(line):
+        import csv
+        try:
+            fields=next(csv.reader([line]));name=Path(fields[0]).name
+            if re.fullmatch(r'part-\d+\.wav',name):
+                part=directory/name
+                if part.is_file() and part.stat().st_size>20000:on_part(part)
+        except (ValueError,IndexError,StopIteration):pass
+    code, output = C.run_cmd(command, env, cancel=cancel,log=closed_segment if on_part else None,echo=bool(on_part))
     if code:
         raise RuntimeError('FFmpeg konnte Set nicht aufteilen: ' + output[-800:])
     return [p for p in sorted(directory.glob('part-*.wav')) if p.stat().st_size > 20000]
 
+
+split_audio.streams_parts=True
 
 def two_pass_offline(mix: Path, cfg: dict, duration: float, notify, cancel: threading.Event):
     return J.offline_scan(mix,cfg,duration,notify,cancel,split_audio,do_match)
@@ -431,6 +443,7 @@ class AppGUI:
             self.progress.set(detail)
 
     def _events(self):
+        redraw_needed=False
         try:
             while True:
                 event=self.events.get_nowait()
@@ -453,7 +466,7 @@ class AppGUI:
                     self.progress_tasks[key]={'done':done,'total':total,'percent':value,'detail':detail}
                     if key in self.stagebar.percentages:
                         self.stagebar.percentages[key]=value
-                        self.stagebar.redraw()
+                        redraw_needed=True
                     if key in self.stagebar.percentages or key=='KI':
                         enabled=[v for k,v in self.stagebar.percentages.items() if k not in self.stagebar.skipped]
                         if 'KI' in self.progress_tasks and 'KI' not in self.stagebar.percentages:enabled.append(self.progress_tasks['KI']['percent'])
@@ -526,6 +539,7 @@ class AppGUI:
                     messagebox.showerror('JOHANNA JOY\'S THE ALMIGHTY',str(event[1]))
         except queue.Empty:
             pass
+        if redraw_needed:self.stagebar.redraw()
         self.root.after(100,self._events)
 
     def _render_hits(self,hits):
@@ -536,7 +550,7 @@ class AppGUI:
             order=self.raw_hits[token]['_received_order'] if token in self.raw_hits else self._received_order
             self.raw_hits[token]={**rec,'_received_order':order}
         previous=self.current_hits;self.current_hits={}
-        for rec in R.merge_records(self.raw_hits.values()):
+        for rec in R.merge_records(self.raw_hits.values(),duplicate_groups=self._ai_findings.get('duplicate_groups',())):
             k=rec['track_id'];hit=previous.get(k,{})
             hit.update(rec);self.current_hits[k]=hit
             if 'bpm' not in hit and not hit.get('_metadata_pending'):
@@ -660,6 +674,7 @@ class AppGUI:
             self._ai_findings=value['findings'];self._ai_by_track={}
             for case in self._ai_findings.get('cases',[]):
                 for track in case.get('tracks',[]):self._ai_by_track[track['track_id']]=case
+            self._render_hits([])
             if self.last_scan and self.last_scan['path']==str(self._ai_worker.mix):
                 self.last_scan['results']['ai_review']=self._ai_findings;self.save_current_set(quiet=True)
 
@@ -692,6 +707,7 @@ class AppGUI:
         if self.restore_last_scan(item['entry_path']):
             self.media_url.set(item.get('source_url',''));self._set_workspace_empty(False);return True
         self.set_path.set(item.get('file',''));self._scan_path=item.get('file','')
+        self._ai_findings=item.get('ai_review') or {}
         self._render_hits(item.get('observations') or item.get('tracks',[]))
         self.progress.set('Gespeicherte Titelliste geladen · Audiodatei bei Bedarf neu zuweisen')
         self._set_workspace_empty(False)
@@ -805,6 +821,7 @@ class AppGUI:
                 try:self._ai_findings=json.loads(Path(self.last_scan['report']).with_name(Path(self.last_scan['report']).stem+'_KI_METHODE.json').read_text(encoding='utf-8'))
                 except (OSError,ValueError):pass
             self._ai_by_track={t['track_id']:case for case in self._ai_findings.get('cases',[]) for t in case.get('tracks',[])}
+            self._render_hits([])
             ai_pending=bool(self._ai_findings and not self._ai_findings.get('complete'))
             if self._ai_findings:
                 results['ai_review']=self._ai_findings
@@ -1249,7 +1266,7 @@ class AppGUI:
             self._notify('stage_progress','setup',2,2,'Datei bereit · '+C.hhmmss(duration))
             audit=None;offline_pending=set(selected & {'A','B'})
             if cfg.get('local_ai_method',False):
-                audit=self._start_audit(path,cfg,duration,previous['results']['observations'] if previous else (),self.cancel,bool(offline_pending))
+                audit=self._start_audit(path,cfg,duration,previous['results']['observations'] if previous else (),self.cancel,False)
             else:self._notify('stage','KI','skipped','KI-Methode deaktiviert')
             def scan_notify(kind,*args):
                 if audit:
@@ -1277,7 +1294,7 @@ class AppGUI:
             self._notify('stage','E','running','Gemeinsame Tracklist speichern')
             self._notify('stage_progress','E',0,1,'TXT und JSON speichern')
             report,merged=X.merged_report(path,duration,offline,weak,mix_hits,sha,engine_status,errors,
-                observations=result['observations'],progress=result.get('progress'))
+                observations=result['observations'],progress=result.get('progress'),ai_review=getattr(audit,'latest_payload',None))
             self._notify('stage_progress','E',1,1,report.name)
             self._notify('stage','E','done',report.name)
             if audit:audit.offer(result['observations']);audit.offer_weak(result['weak']);audit.finish(report)

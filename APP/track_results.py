@@ -21,8 +21,13 @@ def identity(item):
     # "Original Mix" is an alias; every other remix/edit/version remains part
     # of the identity, so an original and a remix never merge by substring.
     title=re.sub(r'[\[(]\s*original(?:\s+(?:mix|version))?\s*[\])]','',title,flags=re.I).strip()
-    return normalized(artist),normalized(title),artist,title
+    title=re.sub(r'\s*[-–—]\s*original(?:\s+(?:mix|version))?\s*$','',title,flags=re.I).strip()
+    return artist_key(artist),normalized(title),artist,title
 
+
+def artist_key(value):
+    credits=re.split(r'\s*(?:&|,|\b(?:featuring|feat|ft)\b\.?)\s*|\s+(?:and|x)\s+',str(value),flags=re.I)
+    return '|'.join(sorted(set(normalized(c) for c in credits if normalized(c))))
 
 def evidence(item):
     source=str(item.get('source') or 'Unbekannt')
@@ -37,11 +42,11 @@ def evidence(item):
         detail='Shazam-Katalog · '+('mix-id' if source.lower()=='mix-id' else 'ShazamIO')
         catalog='Shazam'
     return {'time':float(item.get('time',0)),'methods':list(methods),'source':detail,
-            'catalog':catalog,'path':item.get('full_path',''),'url':item.get('url',''),
+            'catalog':catalog,'path':item.get('full_path',''),'url':item.get('url',''),'catalog_id':item.get('catalog_id',''),
             'order':item.get('_observed_order',item.get('_received_order',0))}
 
 
-def merge_records(observations, max_gap=180):
+def merge_records(observations, max_gap=180, duplicate_groups=()):
     """Merge continuous observations, preserving distinct later plays/versions.
 
     A new observation may extend a cluster using its most recent detection,
@@ -100,4 +105,7 @@ def merge_records(observations, max_gap=180):
             track_id=hashlib.sha256(repr((cluster['identity'],anchor)).encode()).hexdigest()[:20])
         for key in ('_identity','_artist','_title','_first','_last','_serial','observations'):cluster.pop(key,None)
         output.append(cluster)
+    if duplicate_groups:
+        from duplicates import apply_groups
+        return apply_groups(output,duplicate_groups)
     return output

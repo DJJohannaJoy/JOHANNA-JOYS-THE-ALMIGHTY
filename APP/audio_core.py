@@ -710,7 +710,8 @@ async def shazam_probes(mix: Path, points: list[float], cfg: dict, log, cancel: 
                         results.append({"title": str(track.get("title", "")).strip(),
                                         "artist": str(track.get("subtitle", "")).strip(),
                                         "time": t, "source": "shazam", "confidence": "vorläufig",
-                                        "url": str(track.get("url", ""))})
+                                        "url": str(track.get("url", "")),
+                                        "catalog_id":"shazam:"+str(track["key"]) if track.get("key") else ""})
                         if on_hit:on_hit(results[-1])
                         O.save_probe(cache,results[-1])
                         log(f"Shazam {i}/{len(points)} {hhmmss(t)}: {track.get('subtitle','')} - {track.get('title')}")

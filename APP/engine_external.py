@@ -150,7 +150,8 @@ def run_mixid(mix: Path, cfg: dict, env: dict, log, cancel: threading.Event, pro
                             track=answer.get('track')
                             if track and track.get('title'):
                                 record={'time':position,'artist':str(track.get('artist') or ''),'title':str(track['title']),
-                                        'source':'mix-id','confidence':'Online-Stichprobe'}
+                                        'source':'mix-id','confidence':'Online-Stichprobe',
+                                        'url':str(track.get('url') or ''),'catalog_id':'shazam:'+str(track['key']) if track.get('key') else ''}
                             O.save_probe(cache,record);ok=True;break
                         attempt+=1
                         if attempt>=2:raise RuntimeError(str(answer.get('error','Unbekannter Fehler')))
@@ -187,8 +188,8 @@ def merge_results(offline, mixid, shazam):
     return R.merge_records([*offline,*mixid,*[{**x,'source':'ShazamIO'} for x in shazam]])
 
 
-def merged_report(mix:Path,duration:float,offline,weak,mixid,shazam,statuses,errors,observations=None,progress=None):
-    rec=R.merge_records(observations) if observations is not None else merge_results(offline,mixid,shazam)
+def merged_report(mix:Path,duration:float,offline,weak,mixid,shazam,statuses,errors,observations=None,progress=None,ai_review=None,report_path=None):
+    rec=R.merge_records(observations,duplicate_groups=(ai_review or {}).get('duplicate_groups',())) if observations is not None else merge_results(offline,mixid,shazam)
     lines=['JOHANNA JOY\'S THE ALMIGHTY | GEMEINSAME TRACKLIST','='*72,
            f'Datei: {mix}',f'Dauer: {C.hhmmss(duration)}',
            f'Erstellt: {C.stamp()}','', 'ENGINE-STATUS', '-'*72]
@@ -209,8 +210,27 @@ def merged_report(mix:Path,duration:float,offline,weak,mixid,shazam,statuses,err
     if errors:lines+=['','FEHLER / GRENZEN','-'*72,*errors]
     C.OUTPUT.mkdir(exist_ok=True,parents=True)
     base=re.sub(r'[^\w. -]+','_',mix.stem).strip()[:60] or 'Set'
-    output=C.OUTPUT/(base+'_Tracklist_'+__import__('datetime').datetime.now().strftime('%Y%m%d_%H%M%S')+'.txt')
-    output.write_text('\n'.join(lines)+'\n',encoding='utf-8-sig')
-    output.with_suffix('.json').write_text(json.dumps({'file':str(mix),'duration':duration,'tracks':rec,
-        'statuses':statuses,'errors':errors,'observations':observations,'progress':progress},ensure_ascii=False,indent=2),encoding='utf-8')
+    output=Path(report_path) if report_path else C.OUTPUT/(base+'_Tracklist_'+__import__('datetime').datetime.now().strftime('%Y%m%d_%H%M%S')+'.txt')
+    _atomic_text(output,'\n'.join(lines)+'\n','utf-8-sig')
+    _atomic_text(output.with_suffix('.json'),json.dumps({'file':str(mix),'duration':duration,'tracks':rec,
+        'statuses':statuses,'errors':errors,'observations':observations,'progress':progress,**({'ai_review':ai_review} if ai_review else {})},ensure_ascii=False,indent=2),encoding='utf-8')
     return output,rec
+
+
+def refresh_ai_report(report,review):
+    report=Path(report)
+    try:saved=json.loads(report.with_suffix('.json').read_text(encoding='utf-8'))
+    except (OSError,ValueError):return
+    # Library entries have their own schema and are saved by the UI.
+    if 'id' in saved or 'source_report' in saved or not isinstance(saved.get('observations'),list):return
+    merged_report(Path(saved['file']),saved.get('duration',0),[],[],[],[],saved.get('statuses',{}),saved.get('errors',[]),
+        observations=saved['observations'],progress=saved.get('progress'),ai_review=review,report_path=report)
+
+
+def _atomic_text(path,text,encoding='utf-8'):
+    path=Path(path);temp=path.with_name(path.name+'.'+__import__('uuid').uuid4().hex+'.tmp')
+    try:
+        temp.write_text(text,encoding=encoding)
+        temp.replace(path)
+    finally:
+        temp.unlink(missing_ok=True)

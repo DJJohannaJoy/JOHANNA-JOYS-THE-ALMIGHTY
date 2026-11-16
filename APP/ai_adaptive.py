@@ -134,7 +134,9 @@ class AdaptiveReview:
             if all(reference[1]!=R.identity(track)[1] for track in row['tracks']):
                 verdict='version_conflict'
                 reason='Audio-Referenz ist anders benannt: '+Path(path).stem+'. '+reason
-        return {**row,'verdict':verdict,'reason':reason,'matched_source_ids':selected}
+        from duplicates import validate_ids
+        return {**row,'verdict':verdict,'reason':reason,'matched_source_ids':selected,
+                'duplicate_track_ids':validate_ids(row,answer,verdict)}
 
     def refine_case(self,row,answer,provider,model):
         result=self.validate_review(row,answer);maximum=max(0,min(3,int(self.cfg.get('ai_adaptive_rounds',2))))

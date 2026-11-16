@@ -22,7 +22,7 @@ try {
     const response=await client.endpoint.formatAndSendRecognizeRequest({...saved,encodeToUri:()=>saved.uri});
     const track=response?.track;
     if(response&&!track?.title)throw new Error('Malformed Shazam track response');
-    console.log(JSON.stringify({status:'ok',track:track?{title:track.title,artist:track.subtitle}:null}));
+    console.log(JSON.stringify({status:'ok',track:track?{title:track.title,artist:track.subtitle,url:track.url||'',key:String(track.key||'')}:null}));
     process.exit(0);
   }
   if(mode==='--prepare')client.endpoint.formatAndSendRecognizeRequest=async signature=>{

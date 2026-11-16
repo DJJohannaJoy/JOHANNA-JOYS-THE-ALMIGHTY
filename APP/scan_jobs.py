@@ -21,6 +21,9 @@ def accepted_hits(hits,duration):
 
 
 def offline_scan(mix,cfg,duration,notify,cancel,split,match,known_windows=None):
+    if getattr(split,'streams_parts',False):
+        from offline_pipeline import scan
+        return scan(mix,cfg,duration,notify,cancel,split,match,accepted_hits,known_windows)
     env=C.env_with_ffmpeg(cfg['ffmpeg_dir'])
     hits=[];errors=[];quick=[];hit_lock=threading.Lock()
     enabled=set(cfg.get('_scan_stages',('A','B')))

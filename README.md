@@ -1,6 +1,8 @@
 # JOHANNA JOY'S THE ALMIGHTY
 
-**Version 1.14.2 · EMBER · Windows x64**
+**Version 1.14.3 · EMBER · Windows x64**
+
+Schnellscan und Tiefenscan beginnen mit dem ersten fertig dekodierten Abschnitt. mix-id, Shazam und die KI laufen unabhängig daneben. Der Tiefenscan zeigt den Fortschritt pro Schnipsel statt erst nach einer ganzen Tempo-Variante. Die KI-Nachprüfung führt abgesicherte Dubletten zusammen; Quellen, Methoden und rohe Beobachtungen bleiben erhalten. Unterschiedliche Remixes und spätere erneute Abspielungen bleiben getrennt.
 
 Stabilitätskorrektur: Die Bereinigung von Fensterobjekten bleibt auch während paralleler Scans und KI-Prüfungen im Oberflächenthread. Native Abstürze werden mit Zeitstempel, Fehlercode und Python-Stack protokolliert.
 

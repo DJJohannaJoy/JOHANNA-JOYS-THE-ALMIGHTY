@@ -212,7 +212,7 @@ class ProgressPanel:
         ai_done,ai_total,ai_percent,ai_active=ai_progress(self.app)
         for key,(row,caption,bar) in self.rows.items():
             value=self.app.stagebar.percentages.get(key,0);state=self.app.stage_status.get(key,{})
-            text='Aus' if key in self.app.stagebar.skipped else f'{value:.0f} %'
+            text='Aus' if key in self.app.stagebar.skipped else f'{value:.1f} %' if 0<value<10 else f'{value:.0f} %'
             if key=='KI' and ai_total:
                 value=ai_percent
                 text=f'{ai_done}/{ai_total} · {value:.1f} %'

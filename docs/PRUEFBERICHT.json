@@ -1,6 +1,6 @@
 {
-  "version": "1.14.2",
-  "regression_tests": 22,
+  "version": "1.14.3",
+  "regression_tests": 24,
   "passed": true,
   "packaged_program": {
     "ok": true,
@@ -43,5 +43,17 @@
     "ok": true,
     "private_runtime": true,
     "native_crash_logging": true
+  },
+  "parallel_start_regression": {
+    "four_query_methods_before_second_segment": true,
+    "real_first_closed_segment_seconds": 0.047,
+    "incremental_deep_progress": true
+  },
+  "duplicate_regression": {
+    "model_proposals_validated": true,
+    "catalog_identity_corroboration": true,
+    "sources_and_observations_preserved": true,
+    "distinct_remixes_and_replays_preserved": true,
+    "gui_library_txt_json_consistent": true
   }
 }

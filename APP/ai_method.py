@@ -8,6 +8,7 @@ from pathlib import Path
 from difflib import SequenceMatcher
 import audio_core as C
 import track_results as R
+import duplicates as D
 import local_ai as L
 import set_library as SL
 from ai_adaptive import AdaptiveReview
@@ -18,15 +19,21 @@ Nutze nur die gelieferten Belege und IDs. Erfinde keine Songs, Versionen, URLs o
 mix-id und ShazamIO nutzen denselben Shazam-Katalog und sind keine unabhängigen Katalogbelege.
 Verschiedene Titel desselben Künstlers sind keine Dubletten. Ein Original und ein Remix bleiben getrennt.
 Metadaten und Suchtreffer bestätigen nicht, welche Audiodatei im Set spielt.
+Ein bloßer Zusatz Original Mix, Original Version oder Extended Mix gegenüber demselben Titel ohne Zusatz begründet allein keinen Versionskonflikt. Gleicher Künstler, gleiche Set-Stelle und derselbe vorhandene Katalog-Link sprechen für eine Dublette; gib dann beide track_id-Werte in duplicate_track_ids an. Ein konkret anders benannter Remix oder Edit bleibt getrennt.
 Audio-Bestätigung ist nur zulässig, wenn audio.state=strong_local_match. Behalte sonst die Unsicherheit.
 Antworte nur als JSON: {"reviews":[{"case_id":"vorgegebene ID","verdict":"supported|uncertain|version_conflict",
 "reason":"konkrete kurze Begründung auf Deutsch","source_ids":["passende vorgegebene Quellen-ID"],
-"next_test_ids":["vorgegebene test_id aus available_tests"]}]}.
+"next_test_ids":["vorgegebene test_id aus available_tests"], "duplicate_track_ids":["vorhandene track_id"]}]}.
 Wähle bei unklaren Versionen 1 bis 3 gezielte nächste Tests aus available_tests. Nutze besonders feinere
 Tempo-/Pitch-Varianten, wenn bisherige Fingerprints nicht passen. Wähle keine erfundenen IDs.
+Erkenne ausdrücklich Dubletten derselben Aufnahme an derselben Set-Stelle. Gib deren vorhandene
+track_id-Werte in duplicate_track_ids an, sonst ein leeres Array. Behalte unterschiedliche Remixes,
+Edits, Künstler und spätere erneute Abspielungen getrennt. Dubletten-Identität darf auch bei unsicherem
+Audiobefund bewertet werden; dadurch wird die Audio-Erkennung NICHT bestätigt. Gleiche Titel mit
+verschiedenen Künstlern sind keine Dubletten. Erfinde keine IDs.
 Bei starkem passenden Audiobefund und passenden Metadaten keine weiteren Tests anfordern.
 Begründe nach jeder Runde anhand der NEUEN Belege. Ohne weitere sinnvolle Tests Unsicherheit beibehalten.
-Keine Namen umschreiben und keine Titel zusammenführen. Höchstens 80 Wörter pro Fall.'''
+Keine Namen oder Titel umschreiben. Zusammenführungen ausschließlich über die vorgegebenen duplicate_track_ids vorschlagen. Höchstens 80 Wörter pro Fall.'''
 
 def digest(value):return hashlib.sha256(json.dumps(value,ensure_ascii=False,sort_keys=True,default=str).encode()).hexdigest()
 def base_title(track):
@@ -40,16 +47,16 @@ def build_cases(observations):
     for track in tracks:
         if track['track_id'] in used:continue
         related=[other for other in tracks if other['track_id'] not in used and
-                 R.normalized(other.get('artist',''))==R.normalized(track.get('artist','')) and
+                 R.artist_key(other.get('artist',''))==R.artist_key(track.get('artist','')) and
                  base_title(other)==base_title(track) and abs(other['time']-track['time'])<=180]
         used.update(t['track_id'] for t in related)
         rows=[]
         for item in related:
             rows.append({k:item.get(k) for k in ('track_id','number','artist','title','time','first_detection','last_detection','methods','sources','full_path','factor','score','samples','evidence','_ai_unconfirmed')})
         identity=digest([(R.identity(t)[:2],round(t['time']/180)) for t in related])[:20]
-        reason='Versionskonflikt' if len(related)>1 else 'Remix prüfen' if re.search(r'remix|edit|bootleg|vip|rework',track['title'],re.I) else 'Quellen und Grenzfall prüfen'
+        reason='Mögliche Metadaten-Dubletten prüfen' if len(related)>1 and D.compatible(related) else 'Versionskonflikt' if len(related)>1 else 'Remix prüfen' if re.search(r'remix|edit|bootleg|vip|rework',track['title'],re.I) else 'Quellen und Grenzfall prüfen'
         if any(t.get('_ai_unconfirmed') for t in rows):reason+=' · unbestätigter Offline-Kandidat'
-        revision=digest([(t['artist'],t['title'],t['methods'],t['full_path'],min(2,t['samples'] or 1),
+        revision=digest([('duplicate-schema',1)]+[(t['artist'],t['title'],t['methods'],t['full_path'],min(2,t['samples'] or 1),
                           round(float(t.get('first_detection') or t['time'])/30)) for t in rows])
         cases.append({'case_id':identity,'revision':revision,'reason':reason,'tracks':rows})
     return cases
@@ -236,8 +243,9 @@ class Audit(AdaptiveReview):
                     'verdict':{'type':'string','enum':['supported','uncertain','version_conflict']},
                     'reason':{'type':'string','maxLength':700},
                     'source_ids':{'type':'array','items':{'type':'string'},'maxItems':8},
-                    'next_test_ids':{'type':'array','items':{'type':'string'},'maxItems':3}},
-                    'required':['case_id','verdict','reason','source_ids','next_test_ids'],'additionalProperties':False}}},
+                    'next_test_ids':{'type':'array','items':{'type':'string'},'maxItems':3},
+                    'duplicate_track_ids':{'type':'array','items':{'type':'string'},'maxItems':12}},
+                    'required':['case_id','verdict','reason','source_ids','next_test_ids','duplicate_track_ids'],'additionalProperties':False}}},
                 'required':['reviews'],'additionalProperties':False}
             payload={'model':model,'messages':messages,'temperature':0,'max_tokens':tokens,
                      'response_format':{'type':'json_schema','json_schema':{'name':'almighty_reviews','strict':True,'schema':schema}}}
@@ -266,15 +274,20 @@ class Audit(AdaptiveReview):
         return answer.get('reviews',[]) if isinstance(answer,dict) else []
     def persist(self,cases):
         if self.stop.is_set():return
-        payload={'version':2,'file':str(self.mix),'model':self.model,'provider':self.provider,
+        payload={'version':3,'file':str(self.mix),'model':self.model,'provider':self.provider,
                  'total_cases':len(cases),
                  'complete':self.finished.is_set() and all(self.reviews.get(c['case_id'],{}).get('revision')==c['revision'] and self.reviews[c['case_id']].get('audio',{}).get('state')!='deferred' and not self.reviews[c['case_id']].get('adaptive_failed') for c in cases),
                  'file_key':self.file_key,'db_revision':C.DB.stat().st_mtime_ns if C.DB.is_file() else None,
                  'created':time.strftime('%Y-%m-%d %H:%M:%S'),'cases':[self.reviews[c['case_id']] for c in cases if c['case_id'] in self.reviews]}
+        payload['duplicate_groups']=D.groups(payload['cases'],self.model)
+        self.latest_payload=payload
         path=self.root/(self.file_key[:24]+'.json');temp=path.with_suffix('.'+uuid.uuid4().hex+'.tmp')
         temp.write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf-8');temp.replace(path)
         if self.report:
             target=self.report.with_name(self.report.stem+'_KI_METHODE.json');target.write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf-8')
+        if self.report:
+            import engine_external as X
+            X.refresh_ai_report(self.report,payload)
         self.emit('findings',findings=payload,path=str(path))
     def run(self):
         self.provider=self.model=None
@@ -287,7 +300,7 @@ class Audit(AdaptiveReview):
                 try:
                     cached=json.loads((self.root/(self.file_key[:24]+'.json')).read_text(encoding='utf-8'))
                     db_revision=C.DB.stat().st_mtime_ns if C.DB.is_file() else None
-                    if cached.get('version')==2 and cached.get('model')==self.model and cached.get('file_key')==self.file_key and cached.get('db_revision')==db_revision:
+                    if cached.get('version')==3 and cached.get('model')==self.model and cached.get('file_key')==self.file_key and cached.get('db_revision')==db_revision:
                         self.reviews={case['case_id']:case for case in cached.get('cases',[]) if not case.get('adaptive_failed') and not case.get('review_error')}
                 except (OSError,ValueError,KeyError,TypeError):pass
             while not self.stop.is_set():
