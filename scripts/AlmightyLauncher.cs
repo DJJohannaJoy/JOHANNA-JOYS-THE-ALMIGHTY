@@ -6,10 +6,13 @@ using System.Text;
 using System.Windows.Forms;
 [assembly: AssemblyTitle("JOHANNA JOY'S THE ALMIGHTY")]
 [assembly: AssemblyProduct("JOHANNA JOY'S THE ALMIGHTY")]
-[assembly: AssemblyVersion("1.14.1.0")]
-[assembly: AssemblyFileVersion("1.14.1.0")]
+[assembly: AssemblyVersion("1.14.2.0")]
+[assembly: AssemblyFileVersion("1.14.2.0")]
 internal static class AlmightyLauncher {
     private static readonly object LogLock = new object();
+    private static void Record(string path,string message) {
+        lock(LogLock) File.AppendAllText(path,message,Encoding.UTF8);
+    }
     private static string Quote(string value) { return "\"" + value.Replace("\"", "\\\"") + "\""; }
     [STAThread] private static int Main(string[] args) {
         bool check = args.Length == 2 && args[0] == "--self-test";
@@ -24,12 +27,14 @@ internal static class AlmightyLauncher {
             }
             string logs = Path.Combine(data,"Protokolle");Directory.CreateDirectory(logs);
             string log = Path.Combine(logs,"PROGRAMM_START.txt");
+            Record(log,Environment.NewLine+"["+DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")+"] Start: "+python+Environment.NewLine);
             ProcessStartInfo info = new ProcessStartInfo(python);
             info.WorkingDirectory = app;info.UseShellExecute = false;info.CreateNoWindow = true;
-            info.Arguments = "-X utf8 " + Quote(Path.Combine(app,check ? "verify_installation.py" : "almighty.py"));
+            info.Arguments = "-X faulthandler -X utf8 " + Quote(Path.Combine(app,check ? "verify_installation.py" : "almighty.py"));
             if (check) info.Arguments += " " + Quote(Path.GetFullPath(args[1]));
             info.EnvironmentVariables.Remove("PYTHONPATH");info.EnvironmentVariables.Remove("PYTHONHOME");
             info.EnvironmentVariables["PYTHONNOUSERSITE"]="1";
+            info.EnvironmentVariables["PYTHONFAULTHANDLER"]="1";
             info.EnvironmentVariables["PYTHONUTF8"]="1";
             info.EnvironmentVariables["PYTHONIOENCODING"]="utf-8";
             info.EnvironmentVariables["ALMIGHTY_DATA_ROOT"]=data;
@@ -40,10 +45,11 @@ internal static class AlmightyLauncher {
             using (Process process = new Process()) {
                 process.StartInfo=info;
                 DataReceivedEventHandler record = delegate(object sender,DataReceivedEventArgs e) {
-                    if (e.Data!=null) lock(LogLock) File.AppendAllText(log,e.Data+Environment.NewLine,Encoding.UTF8);
+                    if (e.Data!=null) Record(log,e.Data+Environment.NewLine);
                 };
                 process.ErrorDataReceived+=record;process.OutputDataReceived+=record;
                 process.Start();process.BeginErrorReadLine();process.BeginOutputReadLine();process.WaitForExit();
+                Record(log,"["+DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")+"] Exit: "+process.ExitCode+" (0x"+unchecked((uint)process.ExitCode).ToString("X8")+")"+Environment.NewLine);
                 if(process.ExitCode!=0 && !check) MessageBox.Show("Das Programm wurde mit einem Fehler beendet. Details: "+log,"JOHANNA JOY'S THE ALMIGHTY",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return process.ExitCode;
             }

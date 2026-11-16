@@ -1,6 +1,8 @@
 # JOHANNA JOY'S THE ALMIGHTY
 
-**Version 1.14.1 · EMBER · Windows x64**
+**Version 1.14.2 · EMBER · Windows x64**
+
+Stabilitätskorrektur: Die Bereinigung von Fensterobjekten bleibt auch während paralleler Scans und KI-Prüfungen im Oberflächenthread. Native Abstürze werden mit Zeitstempel, Fehlercode und Python-Stack protokolliert.
 
 Shazam verarbeitet auch nach mehreren Zeitüberschreitungen alle übrigen Ausschnitte. Fehlgeschlagene Proben werden anschließend automatisch erneut geprüft; erfolgreiche Antworten bleiben gespeichert. Dienstfehler werden mit Verarbeitungsschritt angezeigt und nicht als „kein Treffer“ gespeichert. Shazams Anfragelimit wird automatisch berücksichtigt.
 

@@ -1,6 +1,6 @@
 {
-  "version": "1.14.1",
-  "regression_tests": 21,
+  "version": "1.14.2",
+  "regression_tests": 22,
   "passed": true,
   "packaged_program": {
     "ok": true,
@@ -31,5 +31,17 @@
     "hits": 38,
     "errors": 0,
     "seconds": 539.19
+  },
+  "tcl_thread_regression": {
+    "dialog_cycles": 16,
+    "parallel_progress_events": 1800,
+    "safely_deferred_finalizers": 96,
+    "unsafe_finalizers": 0,
+    "pending_cleanup": 0
+  },
+  "installed_program": {
+    "ok": true,
+    "private_runtime": true,
+    "native_crash_logging": true
   }
 }

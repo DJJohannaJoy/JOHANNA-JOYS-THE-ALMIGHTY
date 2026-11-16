@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Johanna Joy's THE ALMIGHTY · 1.14.1 EMBER | Windows | Anthrazit + Karminrot.
+"""Johanna Joy's THE ALMIGHTY · 1.14.2 EMBER | Windows | Anthrazit + Karminrot.
 Prototype, source included. Never overwrites the user's source audio/library.
 """
 from __future__ import annotations
@@ -52,6 +52,7 @@ import track_results as R
 import scan_jobs as J
 import set_library as SL
 import ui_text as I
+import ui_lifetime as U
 import ai_method as A
 messagebox=I.DialogProxy(messagebox)
 filedialog=I.DialogProxy(filedialog)
@@ -240,6 +241,7 @@ class AppGUI:
             import ctypes
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('JohannaJoy.TheAlmighty.App')
         self.root = TkinterDnD.Tk() if DND_OK else tk.Tk()
+        U.install(self.root)
         self.language=I.Language(self.cfg.get('language','de'));self.root._almighty_language=self.language
         messagebox.language=self.language;filedialog.language=self.language
         self.root.title("Johanna Joy's THE ALMIGHTY · "+I.VERSION_LABEL)

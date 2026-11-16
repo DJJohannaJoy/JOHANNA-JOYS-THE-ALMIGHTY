@@ -24,7 +24,7 @@ try:
                 header=app.header
                 assert header.version_bounds[2]<=header.language_bounds[0]-8
                 assert header.language_bounds[2]<header.library_bounds[0]<header.gear_bounds[0]
-                assert header.itemcget(header.find_withtag('version')[0],'text')=='Version 1.14.1 - EMBER'
+                assert header.itemcget(header.find_withtag('version')[0],'text')=='Version 1.14.2 - EMBER'
                 buttons=(app.save_button,app.reset_button,app.retry_button)
                 widths=[b.winfo_width() for b in buttons]
                 assert max(widths)-min(widths)<=1,(geometry,widths)
