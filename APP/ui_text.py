@@ -1,9 +1,10 @@
 """German/English interface text. Song names, paths and user input stay literal."""
 import re
+import tkinter as tk
 from tkinter import ttk
 
 APP_NAME="JOHANNA JOY'S THE ALMIGHTY"
-VERSION_LABEL='Version 1.14.4 - EMBER'
+VERSION_LABEL='Version 3.00 - IGNITION'
 TEXT={
 'LINK EINFÜGEN':'PASTE LINK','Link einfügen · YouTube / SoundCloud / Mixcloud':'Paste link · YouTube / SoundCloud / Mixcloud',
 '1 VORBEREITEN · 2 ERKENNEN · 3 PRÜFEN':'1 PREPARE · 2 IDENTIFY · 3 REVIEW',
@@ -41,12 +42,12 @@ TEXT={
 'VORAUSSETZUNGEN':'REQUIREMENTS','LOKALE KI — OPTIONAL':'LOCAL AI — OPTIONAL',
 'LM STUDIO ÖFFNEN':'OPEN LM STUDIO','LM STUDIO ZUWEISEN':'LOCATE LM STUDIO',
 'Modell Verbindung':'Model Connection','RESET':'RESET','MODELL / VERBINDUNG':'MODEL / CONNECTION','BERICHT MIT KI PRÜFEN':'REVIEW REPORT WITH AI',
-'DATEIEN\nVORBEREITEN':'PREPARE\nFILES','SCHNELLSCAN':'QUICK SCAN','TIEFENSCAN 1':'DEEP SCAN 1',
-'TIEFENSCAN 2':'DEEP SCAN 2','GESAMT':'OVERALL','GROSS ANZEIGEN':'LARGE VIEW',
+'DATEIEN\nVORBEREITEN':'PREPARE\nFILES','SCHNELLSCAN':'QUICK SCAN','TIEFENSCAN':'DEEP SCAN',
+'MIX-ID':'MIX-ID','GESAMT':'OVERALL','GROSS ANZEIGEN':'LARGE VIEW',
 'METHODEN / SCHNIPSEL':'METHODS / CLIPS','ZUKLAPPEN':'COLLAPSE','DETAILS':'DETAILS',
 'SCAN-METHODEN':'SCAN METHODS','UNTERSCHRITTE / SCHNIPSEL':'SUBSTEPS / CLIPS',
 'Alle':'All','Aus':'Off','Dateien vorbereiten':'Prepare files','Schnellscan':'Quick scan',
-'Tiefenscan 1':'Deep scan 1','Tiefenscan 2':'Deep scan 2','Ergebnis':'Results','KI-Prüfung':'AI review',
+'Tiefenscan':'Deep scan','MIX-ID':'MIX-ID','Ergebnis':'Results','KI-Prüfung':'AI review',
 'NR.':'NO.','ZEIT':'TIME','TITEL':'TITLE','METHODE':'METHOD','QUELLE':'SOURCE',
 'Set-Bibliothek':'Set library','SET-BIBLIOTHEK':'SET LIBRARY','Titelliste':'Tracklist',
 'TITELLISTE':'TRACKLIST','MAXIMIEREN':'MAXIMIZE','Titel / Künstler suchen':'Search title / artist',
@@ -76,7 +77,7 @@ TEXT={
 'LOKALE KI · OPTIONAL, NUR TEXTPRÜFUNG':'LOCAL AI · OPTIONAL, TEXT REVIEW ONLY',
 'Ergebnis-TXT lokal auf Widersprüche prüfen (keine Audio-ID)':'Review result text locally for inconsistencies (no audio identification)',
 'LM STUDIO HERUNTERLADEN':'DOWNLOAD LM STUDIO','KI-VERBINDUNG PRÜFEN':'CHECK AI CONNECTION',
-'ALTERNATIVE: OLLAMA':'ALTERNATIVE: OLLAMA','ERGEBNISORDNER ÖFFNEN':'OPEN RESULTS FOLDER',
+'ERGEBNISORDNER ÖFFNEN':'OPEN RESULTS FOLDER',
 'Das lokale Sprachmodell erkennt keine Songs, sondern prüft den Trefferbericht.':'The local language model reviews the match report; it does not identify songs.',
 'Einstellungen':'Settings','Lokale KI · Verbindung':'Local AI · Connection',
 'Anbieter':'Provider','Chat-Modell (z. B. Gemma)':'Chat model (e.g. Gemma)',
@@ -111,6 +112,7 @@ WORDS={
 'Laufenden Vorgang beenden · Set wird zurückgesetzt':'Stopping current task · resetting set',
 'Bereit für den ersten Scan':'Ready for the first scan','Noch keine Treffer':'No matches yet',
 }
+TEXT.update({'GOOGLE':'GOOGLE','Google-Zugang importieren':'Import Google access','Google · eigene Musikerkennung':'Google · independent music recognition','GOOGLE-ZUGANG IMPORTIEREN':'IMPORT GOOGLE ACCESS'})
 REVERSE={v:k for k,v in TEXT.items() if v!=k}
 
 class Language:
@@ -124,6 +126,11 @@ class Language:
             value=re.sub(r'(?<!\w)'+re.escape(source)+r'(?!\w)',lambda m:target,value)
         return value
     def apply(self,root):
+        # Tk belongs to the GUI thread; walk Python's registry, never ask Tcl
+        # to recursively enumerate widgets during every scan progress update.
+        import threading
+        if threading.current_thread() is not threading.main_thread():
+            raise RuntimeError('Language updates require the GUI thread')
         def convert(widget,key,current,setter):
             cache=getattr(widget,'_language_values',None)
             if cache is None:widget._language_values={};cache=widget._language_values
@@ -134,7 +141,7 @@ class Language:
         def visit(widget):
             try:
                 if getattr(widget,'_no_translate',False):return
-                if widget.winfo_class() in ('Label','Button','Checkbutton','Labelframe','TLabel','TButton','TCheckbutton'):
+                if isinstance(widget,(tk.Label,tk.Button,tk.Checkbutton,tk.LabelFrame,ttk.Label,ttk.Button,ttk.Checkbutton)):
                     variable=widget.cget('textvariable') if 'textvariable' in widget.keys() else ''
                     if variable:
                         current=str(widget.getvar(variable));convert(widget,'var',current,lambda v:widget.setvar(variable,v))
@@ -142,8 +149,8 @@ class Language:
                 if isinstance(widget,ttk.Treeview):
                     for key in widget['columns']:
                         convert(widget,'heading:'+key,str(widget.heading(key,'text')),lambda v,k=key:widget.heading(k,text=v))
-                if widget.winfo_class()=='Toplevel' and not getattr(widget,'_literal_title',False):convert(widget,'title',widget.title(),widget.title)
-                for child in widget.winfo_children():visit(child)
+                if isinstance(widget,tk.Toplevel) and not getattr(widget,'_literal_title',False):convert(widget,'title',widget.title(),widget.title)
+                for child in tuple(widget.children.values()):visit(child)
             except Exception:pass # A transient window may close during an update.
         visit(root)
 

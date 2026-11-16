@@ -8,7 +8,7 @@ import set_library as library
 from ui_text import tr,TEXT as UI_TEXT,APP_NAME
 from ui_theme import BloodButton,GlowProgress,PANEL,FIELD,TEXT,MUTE,HOT,LINE,resizable_columns
 
-NAMES={'setup':'Dateien vorbereiten','A':'Schnellscan','B':'Tiefenscan 1','M':'Tiefenscan 2','S':'Shazam','E':'Ergebnis','KI':'KI-Prüfung'}
+NAMES={'setup':'Dateien vorbereiten','A':'Schnellscan','B':'Tiefenscan','M':'MIX-ID','S':'Shazam','G':'Google','KI':'KI-Prüfung','E':'Ergebnis'}
 PLATFORMS=(('soundeo','Soundeo',100),('soundcloud','SoundCloud',124),('youtube','YouTube',100),('beatport','Beatport',100),('spotify','Spotify',100))
 
 def ai_progress(app):
@@ -28,10 +28,14 @@ def ai_progress(app):
 
 class NamedProgress(GlowProgress):
     def __init__(self,parent):
-        self.caption='';super().__init__(parent)
+        self.caption='';self._caption_font=Font(root=parent,family='Segoe UI',size=9,weight='bold');super().__init__(parent)
     def draw(self):
         super().draw()
-        self.create_text(max(20,self.winfo_width())/2,max(10,self.winfo_height())/2,text=tr(self,self.caption),fill=TEXT,font=('Segoe UI',9,'bold'))
+        caption=tr(self,self.caption);size=9
+        self._caption_font.configure(size=size)
+        while size>7 and self._caption_font.measure(caption)>max(20,self.winfo_width()-8):
+            size-=1;self._caption_font.configure(size=size)
+        self.create_text(max(20,self.winfo_width())/2,max(10,self.winfo_height())/2,text=caption,fill=TEXT,font=self._caption_font)
 
 def shell(app,title,size):
     window=tk.Toplevel(app.root);window.title(APP_NAME+' · '+title)
@@ -222,20 +226,22 @@ class ProgressPanel:
                 main.caption=f"{'Dateien' if key=='setup' else 'KI' if key=='KI' and ai_total else NAMES[key]} · {text}";main.set_progress(value/100)
         live=getattr(self.app,'ai_live_label',None)
         if live is not None:
-            prefix=tr(live,'KI')+f': {ai_done}/{ai_total} '+tr(live,'geprüft') if ai_total else ''
-            detail=getattr(self.app,'_ai_live_detail','') if ai_active else ''
-            if ai_active and not detail:detail=self.app.stage_status.get('KI',{}).get('detail','')
+            core_active=any(self.app.stage_status.get(k,{}).get('state') in ('running','retrying') for k in ('setup','A','B','M','S','G'))
+            show_ai=ai_active and not core_active
+            prefix=tr(live,'KI')+f': {ai_done}/{ai_total} '+tr(live,'geprüft') if ai_total and not core_active else ''
+            detail=getattr(self.app,'_ai_live_detail','') if show_ai else self.app.progress.get()
+            if show_ai and not detail:detail=self.app.stage_status.get('KI',{}).get('detail','')
             if detail:
                 title,separator,action=detail.rpartition(' · ')
                 detail=tr(live,action)+' · '+title if separator else tr(live,detail)
             seconds=max(0,int(time.monotonic()-getattr(self.app,'_ai_live_started',time.monotonic())))
-            suffix=f' · {seconds} s '+('·','··','···')[seconds%3] if ai_active else ''
+            suffix=f' · {seconds} s '+('·','··','···')[seconds%3] if show_ai else ''
             width=max(1,live.winfo_width()-8);font=Font(root=self.app.root,font=live.cget('font'))
             base=(prefix+' · ' if prefix and detail else prefix)
             shown=detail
             while shown and font.measure(base+shown+suffix)>width:shown=shown[:-1]
             if shown!=detail and shown:shown=shown[:-1]+'…'
-            live.configure(text=base+shown+suffix if prefix or detail else '',fg=TEXT if ai_active else MUTE)
+            live.configure(text=base+shown+suffix if prefix or detail else '',fg=TEXT)
         wanted={k:v for k,v in tasks.items() if '/' in k or k=='KI'}
         selected=self.filter.get()
         if selected=='All':selected='Alle'

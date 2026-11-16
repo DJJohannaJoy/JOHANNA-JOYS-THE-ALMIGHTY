@@ -53,21 +53,25 @@ def service_state(path):
         handle.close()
 
 class RequestGate:
-    def __init__(self,limit=4,interval=2.,state_path=None):
-        self.limit=limit;self.interval=interval;self.base_interval=interval;self.successes=0;self.active=0;self.next_start=0.;self.lock=threading.Lock();self.waiting=[]
+    def __init__(self,limit=2,interval=2.,state_path=None):
+        self.limit=limit;self.interval=interval;self.base_interval=interval;self.successes=0;self.active=0;self.next_start=0.;self.lock=threading.Lock();self.waiting=[];self.lanes={};self.last_lane=None
         self.state_path=Path(state_path) if state_path else None
         self.pause_until=0.;self.epoch=0
-    def _ticket(self):
+    def _ticket(self,lane=None):
         token=object()
-        with self.lock:self.waiting.append(token)
+        with self.lock:self.waiting.append(token);self.lanes[token]=lane
         return token
     def _discard(self,token):
         with self.lock:
             if token in self.waiting:self.waiting.remove(token)
+            self.lanes.pop(token,None)
     def _try(self,token):
         with self.lock:
             now=time.monotonic()
-            if not self.waiting or self.waiting[0] is not token or self.active>=self.limit or now<self.next_start or time.time()<self.pause_until:return False
+            # Alternate adapters when both have ready fingerprints. A backlog
+            # of ShazamIO clips must not push MIX-ID behind the entire queue.
+            first=next((t for t in self.waiting if self.lanes[t]!=self.last_lane),self.waiting[0] if self.waiting else None)
+            if first is not token or self.active>=self.limit or now<self.next_start or time.time()<self.pause_until:return False
             if self.state_path:
                 with service_state(self.state_path) as state:
                     if state is None:return False
@@ -78,11 +82,12 @@ class RequestGate:
                     remaining=self.pause_until-time.time()
                     if remaining>0 or time.time()<state.get('next_start',0):return False
                     state['next_start']=time.time()+self.interval
-            self.waiting.pop(0)
+            self.waiting.remove(token);self.last_lane=self.lanes.pop(token,None)
             self.active+=1;self.next_start=now+self.interval;return True
     def _notice(self,notice,last):
-        if notice and self.pause_until>time.time() and time.monotonic()-last>=1:
-            notice(f'Anfragelimit · automatischer Wiederholungsversuch in {max(0,self.pause_until-time.time()):.0f} s')
+        if notice and time.monotonic()-last>=1:
+            delay=max(0,self.pause_until-time.time())
+            notice(f'Anfragelimit · automatischer Wiederholungsversuch in {delay:.0f} s' if delay else 'Online-Anfrage wird automatisch zugeteilt · keine Bedienung nötig')
             return time.monotonic()
         return last
     def recover(self,error,epoch):
@@ -104,22 +109,22 @@ class RequestGate:
                         state['recovery_until']=time.time()+300
             return True
     def successful(self,epoch):
-        """Gradually recover throughput after six valid replies, including no-match."""
+        """Gradually recover throughput after two valid replies, including no-match."""
         with self.lock:
             if epoch!=self.epoch:return
             if self.state_path:
                 with service_state(self.state_path) as state:
                     if state is None or int(state.get('recovery_epoch',0))!=epoch:return
                     state['successes']=int(state.get('successes',0))+1
-                    if state['successes']>=6:
-                        self.interval=max(self.base_interval,float(state.get('interval',self.interval))*.75)
+                    if state['successes']>=2:
+                        self.interval=max(self.base_interval,float(state.get('interval',self.interval))*.5)
                         state['interval']=self.interval;state['successes']=0
             else:
                 self.successes+=1
-                if self.successes>=6:
-                    self.interval=max(self.base_interval,self.interval*.75);self.successes=0
-    def acquire(self,cancel,notice=None):
-        ticket=self._ticket()
+                if self.successes>=2:
+                    self.interval=max(self.base_interval,self.interval*.5);self.successes=0
+    def acquire(self,cancel,notice=None,lane=None):
+        ticket=self._ticket(lane)
         last=0.
         try:
             while not cancel.is_set():
@@ -128,8 +133,8 @@ class RequestGate:
                 cancel.wait(.05)
             raise RuntimeError('Scan wurde abgebrochen.')
         finally:self._discard(ticket)
-    async def async_acquire(self,cancel,notice=None):
-        ticket=self._ticket()
+    async def async_acquire(self,cancel,notice=None,lane=None):
+        ticket=self._ticket(lane)
         last=0.
         try:
             while not cancel.is_set():

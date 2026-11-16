@@ -1,14 +1,14 @@
 # JOHANNA JOY'S THE ALMIGHTY
 
-**Version 1.14.4 · EMBER · Windows x64**
+**Version 3.00 · IGNITION · Windows x64**
 
 Datei oben auswählen oder Link unten einfügen und einmal **SCANNEN** drücken: Das Set wird automatisch geladen und verarbeitet, anschließend von den parallelen Methoden erkannt und von der lokalen KI nachgeprüft. Echte Download- und Verarbeitungsschritte erscheinen im Fortschritt. Die zuletzt gewählte Quelle hat Vorrang; bereits geladene Links werden bei Einzelprüfungen wiederverwendet.
 
-Google-Songerkennung ist ausschließlich [geplant](docs/GOOGLE_PLAN.md), noch nicht Teil der Anwendung.
+Google Song Search ist als eigene parallele Methode eingebaut. Auf diesem PC ist der getestete Zugang eingerichtet. Bei der öffentlichen ZIP wird eine separate Zugangsdatei unter **Einstellungen → GOOGLE-ZUGANG IMPORTIEREN** benötigt. [Google einrichten](docs/GOOGLE_SETUP_EINFACH.md).
 
-Schnellscan und Tiefenscan beginnen mit dem ersten fertig dekodierten Abschnitt. mix-id, Shazam und die KI laufen unabhängig daneben. Der Tiefenscan zeigt den Fortschritt pro Schnipsel statt erst nach einer ganzen Tempo-Variante. Die KI-Nachprüfung führt abgesicherte Dubletten zusammen; Quellen, Methoden und rohe Beobachtungen bleiben erhalten. Unterschiedliche Remixes und spätere erneute Abspielungen bleiben getrennt.
+Schnellscan und Tiefenscan beginnen mit dem ersten fertig dekodierten Abschnitt. MIX-ID, Shazam, Google und die KI laufen unabhängig daneben. MIX-ID und Shazam teilen sich fair das Anfragebudget ihres gemeinsamen Dienstes; Google verwendet eine eigene Anfrageverteilung. Der Tiefenscan zeigt den Fortschritt pro Schnipsel statt erst nach einer ganzen Tempo-Variante. Die KI-Nachprüfung führt abgesicherte Dubletten zusammen; Quellen, Methoden und rohe Beobachtungen bleiben erhalten. Unterschiedliche Remixes und spätere erneute Abspielungen bleiben getrennt.
 
-Stabilitätskorrektur: Die Bereinigung von Fensterobjekten bleibt auch während paralleler Scans und KI-Prüfungen im Oberflächenthread. Native Abstürze werden mit Zeitstempel, Fehlercode und Python-Stack protokolliert.
+Stabilitätskorrektur 1.14.5: Shazams native Fingerabdruckberechnung läuft in einem getrennten Prozess. Die zyklische Speicherbereinigung wird durch das Hauptfenster gesteuert; der periodische Sprachabgleich liest den Python-Fensterbaum statt Tcl rekursiv abzufragen. Die Bereinigung von Fensterobjekten bleibt auch während paralleler Scans und KI-Prüfungen im Oberflächenthread. Native Abstürze werden mit Zeitstempel, Fehlercode und Python-Stack protokolliert.
 
 Shazam verarbeitet auch nach mehreren Zeitüberschreitungen alle übrigen Ausschnitte. Fehlgeschlagene Proben werden anschließend automatisch erneut geprüft; erfolgreiche Antworten bleiben gespeichert. Dienstfehler werden mit Verarbeitungsschritt angezeigt und nicht als „kein Treffer“ gespeichert. Shazams Anfragelimit wird automatisch berücksichtigt.
 
@@ -29,11 +29,11 @@ JOHANNA JOY'S THE ALMIGHTY/
 └── VERSION.json
 ```
 
-Alle persönlichen Daten bleiben im Programmordner. `APP`, `runtime` und `licenses` gehören zur Anwendung. Externe Musikdateien bleiben an ihrem ursprünglichen Ort. Die optionale lokale KI verwendet ein separat laufendes LM Studio/Ollama mit geladenem Modell.
+Alle persönlichen Daten bleiben im Programmordner. `APP`, `runtime` und `licenses` gehören zur Anwendung. Externe Musikdateien bleiben an ihrem ursprünglichen Ort. Die optionale lokale KI verwendet ein separat laufendes LM Studio mit geladenem Modell.
 
 ## Funktionen
 
-Paralleler Schnellscan, Tempo-Abgleich, mix-id und ShazamIO; nummerierte Ergebnisse mit Quellen, Methoden, Format und BPM; Wiederholung einzelner Methoden; eigenständige KI-Nachprüfung; Set-Bibliothek; gespeicherte Spaltenbreiten; Rekordbox-Export als M3U8/XML mit dauerhaften Dateizuordnungen.
+Paralleler Schnellscan, Tempo-Abgleich, MIX-ID, ShazamIO und Google Song Search; nummerierte Ergebnisse mit Quellen, Methoden, Format und BPM; Wiederholung einzelner Methoden; eigenständige KI-Nachprüfung; Set-Bibliothek; gespeicherte Spaltenbreiten; Rekordbox-Export als M3U8/XML mit dauerhaften Dateizuordnungen.
 
 ## Quellprojekt
 

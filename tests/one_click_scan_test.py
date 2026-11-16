@@ -30,9 +30,9 @@ try:
             return downloaded
         def scan(path,settings,duration,notify,cancel,*args,**kwargs):
             assert path in (local,downloaded);order.append('scan')
-            for stage in ('A','B','M','S'):notify('stage',stage,'running','scan')
-            for stage in ('A','B','M','S'):notify('stage',stage,'done','done')
-            return {'offline':[],'weak':[],'mixid':[],'shazam':[],'observations':[],'progress':{}},{},[]
+            for stage in ('A','B','M','S','G'):notify('stage',stage,'running','scan')
+            for stage in ('A','B','M','S','G'):notify('stage',stage,'done','done')
+            return {'offline':[],'weak':[],'mixid':[],'shazam':[],'google':[],'observations':[],'progress':{}},{},[]
         try:
             with patch.object(app.root,'clipboard_get',return_value=link):app.paste_link()
             assert not jobs and app.media_url.get()==link,'Pasting started a separate download'

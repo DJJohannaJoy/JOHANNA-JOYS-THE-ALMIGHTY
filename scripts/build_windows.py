@@ -1,7 +1,7 @@
 """Build the complete relocatable Windows application; never include personal data."""
 from pathlib import Path
 import argparse,hashlib,json,os,shutil,subprocess,sys
-BRAND="JOHANNA JOY'S THE ALMIGHTY";VERSION='1.14.4'
+BRAND="JOHANNA JOY'S THE ALMIGHTY";VERSION='3.00'
 root=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--components',type=Path,required=True)
 p.add_argument('--output',type=Path,default=root/'outputs'/BRAND)
@@ -32,9 +32,10 @@ compiler=Path(os.environ['WINDIR'])/'Microsoft.NET/Framework64/v4.0.30319/csc.ex
 subprocess.run([str(compiler),'/nologo','/target:winexe','/platform:x64','/optimize+','/reference:System.Windows.Forms.dll',
                '/win32icon:'+str(root/'APP/assets/almighty_icon.ico'),'/out:'+str(out/(BRAND+'.exe')),
                str(root/'scripts/AlmightyLauncher.cs')],check=True)
-(out/'README.txt').write_text(BRAND+'\nVersion '+VERSION+' · EMBER\n\nDas ZIP vollständig entpacken und die gleichnamige EXE starten.\nDatei auswählen oder Link einfügen, dann einmal SCANNEN: Download, Verarbeitung, Erkennung und lokale KI-Nachprüfung laufen automatisch.\nGoogle-Songerkennung ist nur geplant und nicht eingebaut.\nAPP, runtime und licenses gehören zum Programm. Eigene Einstellungen, Datenbank, Sets und Ergebnisse liegen ausschließlich unter Daten.\nPython 3.12, die Bibliotheken, FFmpeg, Node und die Erkennungs-Engines sind vollständig enthalten. Eine systemweite Python-Installation ist nicht erforderlich.\nDie optionale lokale KI verwendet ein separat laufendes LM Studio/Ollama mit geladenem Modell.\n\nSpaltenbreiten lassen sich im Tabellenkopf ziehen und bleiben gespeichert. Scannen und Rekordbox-Export stehen im Verhältnis 3:2 nebeneinander.\n',encoding='utf-8-sig')
+(out/'README.txt').write_text(BRAND+'\nVersion '+VERSION+' · IGNITION\n\nDas ZIP vollständig entpacken und die gleichnamige EXE starten.\nDatei auswählen oder Link einfügen, dann einmal SCANNEN: Download, Verarbeitung, Erkennung und lokale KI-Nachprüfung laufen automatisch.\nGoogle Song Search läuft parallel. Zugang unter Einstellungen importieren; Details in Dokumentation/Google-Songerkennung.md.\nAPP, runtime und licenses gehören zum Programm. Eigene Einstellungen, Datenbank, Sets und Ergebnisse liegen ausschließlich unter Daten.\nPython 3.12, die Bibliotheken, FFmpeg, Node und die Erkennungs-Engines sind vollständig enthalten. Eine systemweite Python-Installation ist nicht erforderlich.\nDie optionale lokale KI verwendet ein separat laufendes LM Studio mit geladenem Modell.\n\nSpaltenbreiten lassen sich im Tabellenkopf ziehen und bleiben gespeichert. Scannen und Rekordbox-Export stehen im Verhältnis 3:2 nebeneinander.\n',encoding='utf-8-sig')
 (out/'Dokumentation').mkdir()
 shutil.copy2(root/'docs/GOOGLE_PLAN.md',out/'Dokumentation/Google-Songerkennung.md')
+for name in ('GOOGLE_SETUP_EINFACH.md','GOOGLE_DEEP_DIVE.md'):shutil.copy2(root/'docs'/name,out/'Dokumentation'/name)
 files=[]
 for file in sorted(out.rglob('*')):
     if file.is_file() and '__pycache__' not in file.parts and 'Daten' not in file.relative_to(out).parts:

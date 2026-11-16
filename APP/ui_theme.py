@@ -588,8 +588,8 @@ def build_ui(a):
 
     top=tk.Frame(body,bg=BASE)
     top.grid(row=0,column=0,sticky='nsew',pady=(0,10))
-    top.columnconfigure(0,weight=52,uniform='toparea')
-    top.columnconfigure(1,weight=25,uniform='toparea')
+    top.columnconfigure(0,weight=50,uniform='toparea')
+    top.columnconfigure(1,weight=28,uniform='toparea')
     top.columnconfigure(2,weight=22,uniform='toparea')
     top.rowconfigure(0,weight=1)
 
@@ -667,30 +667,42 @@ def build_ui(a):
     placeholder(lentry,a.media_url,'Link einfügen · YouTube / SoundCloud / Mixcloud')
     load=BloodButton(links,'LINK EINFÜGEN',a.paste_link,width=198,height=41,font_size=13)
     load.grid(row=0,column=1,sticky='nsew',padx=(13,0))
+    load.configure(state='disabled',takefocus=0)
     a.file_button=browse
     a.link_button=load
     a.file_entry=fentry;a.link_entry=lentry
 
     right_wrap,right=card(top,10,5,desired_height=231)
     right_wrap.grid(row=0,column=1,sticky='nsew',padx=(0,10))
-    section(right,'VORAUSSETZUNGEN')
+    prerequisites_head=tk.Frame(right,bg=PANEL)
+    prerequisites_head.pack(fill='x',pady=(0,9))
+    heading=SectionHeading(prerequisites_head,'VORAUSSETZUNGEN',size=21)
+    heading.pack(side='left',fill='x',expand=True)
+    info=tk.Canvas(prerequisites_head,width=28,height=28,bg=PANEL,highlightthickness=0,cursor='hand2',takefocus=1)
+    info.pack(side='right',padx=(4,0))
+    info.create_oval(4,4,24,24,outline=HOT,width=2)
+    info.create_text(14,14,text='i',fill=TEXT,font=('Segoe UI',-15,'bold'))
+    info.bind('<ButtonRelease-1>',lambda e:a.show_prerequisites_info())
+    info.bind('<Return>',lambda e:a.show_prerequisites_info())
+    info.bind('<space>',lambda e:a.show_prerequisites_info())
     a.statuses={}
     a.status_actions={}
     captions=[('ffmpeg','FFmpeg','EINRICHTEN'),('db','Musikdatenbank','ANLEGEN'),
               ('offline','Offline-Engine','EINRICHTEN'),('mixid','mix-id','EINRICHTEN'),
-              ('shazam','ShazamIO','EINRICHTEN')]
+              ('shazam','ShazamIO','EINRICHTEN'),('google','Google Song Search','EINRICHTEN')]
     for key,desc,fixcaption in captions:
-        row=tk.Frame(right,bg=PANEL,height=30)
-        row.pack(fill='x',pady=(0,1))
-        row.pack_propagate(False)
+        row=tk.Frame(right,bg=PANEL,height=26)
+        row.pack(fill='x')
+        row.grid_propagate(False)
         row.grid_columnconfigure(1,weight=1)
-        sym=label(row,'○',16,'bold',MUTE)
+        sym=label(row,'○',14,'bold',MUTE);sym.configure(font=('Segoe UI',-19,'bold'))
         sym.grid(row=0,column=0,sticky='w',padx=(1,7))
-        label(row,desc,11,'normal').grid(row=0,column=1,sticky='w')
-        stat=label(row,'Prüfe …',10,'bold',MUTE)
+        desc_label=label(row,desc,10,'normal');desc_label.configure(font=('Segoe UI',-14))
+        desc_label.grid(row=0,column=1,sticky='w')
+        stat=label(row,'Prüfe …',10,'bold',MUTE);stat.configure(font=('Segoe UI',-12,'bold'))
         stat.grid(row=0,column=2,sticky='e',padx=(5,0))
         fix=BloodButton(row,fixcaption,lambda k=key:a.fix_prerequisite(k),
-                        width=108,height=27,outline_only=True,font_size=9)
+                        width=96,height=24,outline_only=True,font_size=8)
         fix.grid(row=0,column=3,padx=(7,0))
         fix.grid_remove()
         tk.Frame(right,bg=LINE,height=1).pack(fill='x')
@@ -741,13 +753,12 @@ def build_ui(a):
     flow_path.rowconfigure(1,weight=1)
     flowhead=tk.Frame(flow_path,bg=PANEL);flowhead.grid(row=0,column=0,sticky='ew')
     label(flowhead,'ABLAUF',14,'bold').pack(side='left')
-    a.phase_label=label(flowhead,'1 VORBEREITEN · 2 ERKENNEN · 3 PRÜFEN',9,color=MUTE)
-    a.phase_label.pack(side='right',padx=(8,20))
+    # Phase and current activity are displayed together in the progress footer.
     nodes=tk.Frame(flow_path,bg=PANEL)
     nodes.grid(row=1,column=0,sticky='ew',padx=(0,20))
     stagespec=[('setup','DATEIEN\nVORBEREITEN'),('A','SCHNELLSCAN'),
-               ('B','TIEFENSCAN 1'),('M','TIEFENSCAN 2'),
-               ('S','SHAZAM'),('KI','KI-PRÜFUNG'),('E','ERGEBNIS')]
+               ('B','TIEFENSCAN'),('M','MIX-ID'),
+               ('S','SHAZAM'),('G','GOOGLE'),('KI','KI-PRÜFUNG'),('E','ERGEBNIS')]
     stagebar=StageStrip(nodes,stagespec)
     a.stagebar=stagebar
     stagebar.pack(fill='x')
@@ -820,8 +831,12 @@ def build_ui(a):
     foot_header=label(foothead,'FORTSCHRITT',13,'bold');foot_header.pack(side='left')
     a.progress_toggle=BloodButton(foothead,'METHODEN / SCHNIPSEL',lambda:toggle_progress(),width=205,height=26,outline_only=True,font_size=9)
     a.progress_toggle.pack(side='right')
-    a.ai_live_label=tk.Label(foothead,text='',bg=PANEL,fg=MUTE,font=('Segoe UI',9),anchor='w',width=1)
-    a.ai_live_label.pack(side='left',fill='x',expand=True,padx=12)
+    a.phase_status_box=tk.Frame(foothead,bg=FIELD,highlightthickness=2,highlightbackground=HOT,padx=8,pady=3)
+    a.phase_status_box.pack(side='left',fill='x',expand=True,padx=12)
+    a.phase_label=tk.Label(a.phase_status_box,text='BEREIT',bg=FIELD,fg=HOT,font=('Segoe UI',9,'bold'),anchor='w')
+    a.phase_label.pack(side='left',padx=(0,10))
+    a.ai_live_label=tk.Label(a.phase_status_box,text='Datei auswählen oder Link einfügen',bg=FIELD,fg=TEXT,font=('Segoe UI',9),anchor='w',width=1)
+    a.ai_live_label.pack(side='left',fill='x',expand=True)
     row=tk.Frame(foot,bg=PANEL)
     row.pack(fill='x')
     row.columnconfigure(0,weight=1,uniform='totals');row.columnconfigure(1,weight=1,uniform='totals')
@@ -843,7 +858,7 @@ def build_ui(a):
     for i,(key,title) in enumerate(NAMES.items()):
         methods.columnconfigure(i,weight=1,uniform='methods')
         bar=NamedProgress(methods);bar.caption=title+' · 0 %';bar.configure(height=26)
-        bar.grid(row=0,column=i,sticky='ew',padx=(0,5) if i<6 else (0,0));a.method_progress[key]=bar
+        bar.grid(row=0,column=i,sticky='ew',padx=(0,5) if i<len(NAMES)-1 else (0,0));a.method_progress[key]=bar
         if key=='KI':bar.bind('<ButtonRelease-1>',lambda e:a.show_ai_findings());bar.configure(cursor='hand2')
     a.progress_panel=ProgressPanel(foot,a);a.progress_panel.frame.pack_forget()
     def sync_totals(*args):
@@ -918,7 +933,7 @@ def show_completion(app,message,context=None):
         metrics=tk.Frame(body,bg=BASE);metrics.pack(fill='x',pady=(18,16))
         results=context.get('results',{})
         for i,(name,key,caption) in enumerate([('OFFLINE','offline','Trefferkandidaten'),
-                ('TIEFENSCAN 2','mixid','Beobachtungen'),('SHAZAM','shazam','Beobachtungen')]):
+                ('MIX-ID','mixid','Beobachtungen'),('SHAZAM','shazam','Beobachtungen'),('GOOGLE','google','Beobachtungen')]):
             metrics.columnconfigure(i,weight=1,uniform='metric')
             box=tk.Frame(metrics,bg=PANEL2,highlightthickness=1,highlightbackground=LINE,padx=14,pady=10)
             box.grid(row=0,column=i,sticky='nsew',padx=(0,10 if i<2 else 0))

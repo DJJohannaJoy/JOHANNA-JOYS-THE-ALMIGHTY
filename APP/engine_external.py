@@ -87,7 +87,7 @@ def run_mixid(mix: Path, cfg: dict, env: dict, log, cancel: threading.Event, pro
     jobs=queue.Queue()
     for point in points:jobs.put(point)
     gate=cfg.get('_online_gate') or O.RequestGate()
-    mutex=threading.Lock();stopped=threading.Event();records=[];errors=[];completed=0;failures=0
+    mutex=threading.RLock();phases={};stopped=threading.Event();records=[];errors=[];completed=0;failures=0
     ffmpeg=shutil.which('ffmpeg',path=env.get('PATH'))
     def worker(number):
       nonlocal completed,failures
@@ -100,7 +100,10 @@ def run_mixid(mix: Path, cfg: dict, env: dict, log, cancel: threading.Event, pro
             cache=O.probe_cache(C.DATA,mix,position,'mix-id-18s')
             cached=O.read_probe(cache);record=None;ok=False
             def detail(done,caption):
-                if cfg.get('_probe_progress'):cfg['_probe_progress'](f'probe/{position:06d}',done,3,f'Tiefenscan 2 · {C.hhmmss(position)} · '+caption)
+                with mutex:
+                    phases[position]=done
+                    if progress:progress(sum(phases.values())/3,max(1,len(points)),f'MIX-ID · {completed}/{len(points)} geprüft · '+caption)
+                if cfg.get('_probe_progress'):cfg['_probe_progress'](f'probe/{position:06d}',done,3,f'MIX-ID · {C.hhmmss(position)} · '+caption)
             detail(0,'vorbereiten')
             try:
                 if cached is not None:
@@ -128,9 +131,9 @@ def run_mixid(mix: Path, cfg: dict, env: dict, log, cancel: threading.Event, pro
                         signature_temp=prepared.with_suffix(f'.{threading.get_ident()}.tmp')
                         shutil.copyfile(temporary,signature_temp);signature_temp.replace(prepared)
                     detail(2,'Fingerabdruck bereit · Online-Suche')
-                    attempt=0
+                    attempt=0;limited_attempts=0
                     while True:
-                        epoch=gate.acquire(cancel,lambda s:log(s))
+                        epoch=gate.acquire(cancel,lambda s:log(s),lane='mix-id')
                         try:
                             if stopped.is_set():return
                             log(f'Arbeiter {number} · {C.hhmmss(position)} · Anfrage'+(' erneut' if attempt else ''))
@@ -142,6 +145,8 @@ def run_mixid(mix: Path, cfg: dict, env: dict, log, cancel: threading.Event, pro
                         if code and answer.get('status') not in {'error','rate_limit'}:
                             answer={'status':'error','error':f"Prozessfehler {code}; Phase: {answer.get('phase','Start')}"}
                         if answer.get('status')=='rate_limit':
+                            limited_attempts+=1
+                            if limited_attempts>=3:raise RuntimeError('Shazam-Anfragelimit (HTTP 429) · drei Versuche fehlgeschlagen; einzelne Methode erneut prüfbar')
                             error=O.RateLimited('mix-id: Shazam-Anfragelimit (HTTP 429) · später erneut prüfen',O.retry_delay(answer.get('retry_after')))
                             gate.recover(error,epoch)
                             continue
@@ -172,7 +177,7 @@ def run_mixid(mix: Path, cfg: dict, env: dict, log, cancel: threading.Event, pro
                 with mutex:
                     if ok:completed+=1
                     if ok:detail(3,'Treffer' if record else 'geprüft · kein Treffer')
-                    if progress:progress(completed,len(points),f'mix-id · {completed}/{len(points)} · Arbeiter {number}'+(' · gespeichert' if cached is not None else ''))
+                    if progress:progress(sum(phases.values())/3,max(1,len(points)),f'MIX-ID · {completed}/{len(points)} geprüft · Arbeiter {number}')
                 jobs.task_done()
     with ThreadPoolExecutor(max_workers=max(1,min(4,int(cfg.get('mixid_workers',4))))) as pool:
         futures=[pool.submit(worker,i+1) for i in range(max(1,min(4,int(cfg.get('mixid_workers',4)))))]
@@ -201,12 +206,6 @@ def merged_report(mix:Path,duration:float,offline,weak,mixid,shazam,statuses,err
         lines.append(f"{r['number']:02d} | {C.hhmmss(r['time'])} | {ident} | {' → '.join(r['methods'])} | {' + '.join(r['sources'])}")
     lines+=['','UNSICHERE OFFLINE-KANDIDATEN (nicht automatisch bestätigt)','-'*72]
     lines += [f"{C.hhmmss(x.get('first_detection',0))} | {x['title']} | {x['score']} Hashes" for x in weak[:80]] or ['Keine']
-    lines+=['','HINWEISE','-'*72,
-             'mix-id nutzt bereits Shazam, ist keine zusätzliche Offline-Engine.',
-             'ShazamIO prüft verteilte Stichproben parallel. Kein Key erforderlich, aber Internet notwendig.',
-             'Die Zeitmarken sind Erkennungspositionen/Schätzungen, nicht exakt ermittelte Trackstarts.',
-             'Auch ein online erkannter Titel ist nicht automatisch sicher.',
-             'Originaldateien und Rekordbox-Bibliothek bleiben unverändert.']
     if errors:lines+=['','FEHLER / GRENZEN','-'*72,*errors]
     C.OUTPUT.mkdir(exist_ok=True,parents=True)
     base=re.sub(r'[^\w. -]+','_',mix.stem).strip()[:60] or 'Set'

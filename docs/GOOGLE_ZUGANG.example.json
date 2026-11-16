@@ -1,0 +1,6 @@
+{
+  "x-goog-api-key": "<GOOGLE-APP-KENNUNG>",
+  "x-android-package": "com.google.android.googlequicksearchbox",
+  "x-android-cert": "58E1C4133F7441EC3D2C270270A14802DA47BA0E",
+  "user-agent": "com.google.android.googlequicksearchbox/301194889"
+}

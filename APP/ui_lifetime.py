@@ -6,6 +6,8 @@ from whichever worker happens to collect them. Retain those resources until
 the GUI thread can release them. This also covers explicit worker gc.collect().
 """
 import atexit
+import gc
+import time
 import functools
 import queue
 import threading
@@ -58,9 +60,18 @@ def install(root):
         for cls in (tkinter.Variable,tkinter.Image,Font,PhotoImage):_protect(cls)
         atexit.register(drain)
         _installed=True
+    # Automatic cyclic GC otherwise runs in whichever scan thread allocates
+    # the threshold object, potentially freeing cycles holding a Tcl interpreter.
+    # Collect cycles only from the owning event loop while this root is alive.
+    was_enabled=gc.isenabled();gc.disable()
+    last=[time.monotonic(),time.monotonic()]
     job=[None]
     def tick():
         drain()
+        now=time.monotonic()
+        if now-last[0]>=2:
+            gc.collect(2 if now-last[1]>=30 else 0);last[0]=now
+            if now-last[1]>=30:last[1]=now
         job[0]=root.after(50,tick)
     def destroyed(event):
         if event.widget is not root:return
@@ -69,5 +80,7 @@ def install(root):
             except Exception:pass
             job[0]=None
         drain()
+        gc.collect()
+        if was_enabled:gc.enable()
     root.bind('<Destroy>',destroyed,add='+')
     tick()

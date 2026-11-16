@@ -2,7 +2,6 @@
 """Optional local LLM report review. Does not identify audio or invent tracks.
 
 LM Studio: http://127.0.0.1:1234/v1/chat/completions
-Ollama:   http://127.0.0.1:11434/api/chat
 """
 from __future__ import annotations
 import json
@@ -49,10 +48,9 @@ def downloaded_models():
 
 
 def connection(cfg=None):
-    cfg=cfg or {};provider=cfg.get('local_ai_provider','LM Studio')
-    if provider not in {'LM Studio','Ollama'}:raise ValueError('Unbekannter lokaler KI-Anbieter.')
-    base=cfg.get('local_ai_base_url') or ('http://127.0.0.1:1234' if provider=='LM Studio' else 'http://127.0.0.1:11434')
-    return provider,local_base(base)
+    cfg=cfg or {}
+    base=cfg.get('local_ai_base_url') if cfg.get('local_ai_provider','LM Studio')=='LM Studio' else None
+    return 'LM Studio',local_base(base or 'http://127.0.0.1:1234')
 
 
 def inventory(cfg=None):
@@ -60,25 +58,21 @@ def inventory(cfg=None):
     result={'provider':provider,'base':base,'models':[],'ready':False,'model':None,
             'installed':find_lmstudio(cfg),'downloaded':downloaded_models(),'info':''}
     try:
-        if provider=='Ollama':
-            data=request_json(base+'/api/tags',timeout=1.5)
-            result['models']=[{'id':m['name'],'loaded':None} for m in data.get('models',[]) if m.get('name')]
-        else:
+        try:
+            data=request_json(base+'/api/v1/models',timeout=1.5)
+            for m in data['models']:
+                if m.get('type')!='llm':continue
+                loaded=m.get('loaded_instances',[])
+                result['models'].append({'id':loaded[0]['id'] if loaded else m['key'],'loaded':bool(loaded)})
+        except (OSError,ValueError,KeyError):
             try:
-                data=request_json(base+'/api/v1/models',timeout=1.5)
-                for m in data['models']:
-                    if m.get('type')!='llm':continue
-                    loaded=m.get('loaded_instances',[])
-                    result['models'].append({'id':loaded[0]['id'] if loaded else m['key'],'loaded':bool(loaded)})
+                data=request_json(base+'/api/v0/models',timeout=1.5)
+                result['models']=[{'id':m['id'],'loaded':m.get('state')=='loaded'}
+                    for m in data['data'] if m.get('type') in {'llm','vlm'}]
             except (OSError,ValueError,KeyError):
-                try:
-                    data=request_json(base+'/api/v0/models',timeout=1.5)
-                    result['models']=[{'id':m['id'],'loaded':m.get('state')=='loaded'}
-                        for m in data['data'] if m.get('type') in {'llm','vlm'}]
-                except (OSError,ValueError,KeyError):
-                    data=request_json(base+'/v1/models',timeout=1.5)
-                    result['models']=[{'id':m['id'],'loaded':None} for m in data.get('data',[])
-                                      if m.get('id') and 'embed' not in m['id'].lower()]
+                data=request_json(base+'/v1/models',timeout=1.5)
+                result['models']=[{'id':m['id'],'loaded':None} for m in data.get('data',[])
+                                  if m.get('id') and 'embed' not in m['id'].lower()]
         selected=cfg.get('local_ai_model','').strip()
         choices=result['models']
         chosen=next((m for m in choices if m['id']==selected),None) if selected else next((m for m in choices if m['loaded']),choices[0] if choices else None)
@@ -128,16 +122,10 @@ def review_report(report_path: Path, max_chars=36000, cfg=None):
     clipped=len(full)>len(excerpt)
     prompt='Prüfe ausschliesslich diesen Prüfbericht. Keine neuen Tracks erzeugen.\n\n'+excerpt
     messages=[{'role':'system','content':SYSTEM},{'role':'user','content':prompt}]
-    if provider=='LM Studio':
-        data=request_json(base+'/v1/chat/completions',
-                {'model':model,'messages':messages,'temperature':0,'max_tokens':2400},timeout=180)
-        result=data['choices'][0]['message']['content']
-        limited=data['choices'][0].get('finish_reason')=='length'
-    else:
-        data=request_json(base+'/api/chat',
-                {'model':model,'messages':messages,'stream':False,'options':{'temperature':0,'num_predict':2400}},timeout=180)
-        result=data['message']['content']
-        limited=data.get('done_reason')=='length'
+    data=request_json(base+'/v1/chat/completions',
+            {'model':model,'messages':messages,'temperature':0,'max_tokens':2400},timeout=180)
+    result=data['choices'][0]['message']['content']
+    limited=data['choices'][0].get('finish_reason')=='length'
     if not isinstance(result,str) or not result.strip():
         raise RuntimeError('Die lokale KI hat keinen auswertbaren Text zurückgegeben.')
     out=report_path.with_name(report_path.stem+'_KI_PRUEFUNG.txt')

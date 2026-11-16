@@ -10,6 +10,7 @@ import shutil
 import audio_core as C
 import engine_external as X
 import online_requests as O
+import google_method as G
 
 
 def accepted_hits(hits,duration):
@@ -132,8 +133,8 @@ def offline_scan(mix,cfg,duration,notify,cancel,split,match,known_windows=None):
 
 def parallel_scan(mix,cfg,duration,notify,cancel,split,match,stages=None,seed_observations=()):
     """Start independent methods together; preserve partial results and errors."""
-    results={'offline':[],'weak':[],'mixid':[],'shazam':[]};statuses={};errors=[]
-    selected=set(stages if stages is not None else ('A','B','M','S'))
+    results={'offline':[],'weak':[],'mixid':[],'shazam':[],'google':[]};statuses={};errors=[]
+    selected=set(stages if stages is not None else ('A','B','M','S')+(('G',) if cfg.get('google',False) else ()))
     cfg={**cfg,'_online_gate':O.RequestGate(state_path=C.DATA/'shazam_service.json')}
     snapshot={'tasks':{},'states':{}}
     lock=threading.Lock();counter=[0];live={}
@@ -161,14 +162,14 @@ def parallel_scan(mix,cfg,duration,notify,cancel,split,match,stages=None,seed_ob
             notify(kind,*args)
     def online_windows():
         with lock:
-            return [(float(r['time']),float(r['time'])+(18 if r.get('source')=='mix-id' else 12))
-                    for r in live.values() if not r.get('full_path') and r.get('source') in {'mix-id','ShazamIO'}]
+            return [(float(r['time']),float(r['time'])+(18 if r.get('source')=='mix-id' else 20 if r.get('source')=='Google' else 12))
+                    for r in live.values() if not r.get('full_path') and r.get('source') in {'mix-id','ShazamIO','Google'}]
     # Repeated methods update matching evidence without losing the other
     # methods, their successful results, or their original discovery order.
     if seed_observations:
         for record in seed_observations:
             source=record.get('source')
-            adapter='mix-id-18s' if source=='mix-id' else 'ShazamIO-12s' if source in {'ShazamIO','shazam'} else None
+            adapter='mix-id-18s' if source=='mix-id' else 'ShazamIO-12s' if source in {'ShazamIO','shazam'} else 'Google-20s-v1' if source=='Google' else None
             if adapter:O.save_probe(O.probe_cache(C.DATA,mix,record.get('time',0),adapter),record)
         counter[0]=max(int(r.get('_observed_order',r.get('_received_order',0))) for r in seed_observations)
         emit('hits',seed_observations)
@@ -182,6 +183,7 @@ def parallel_scan(mix,cfg,duration,notify,cancel,split,match,stages=None,seed_ob
             emit('log','mix-id: '+message)
             if 'automatischer Wiederholungsversuch' in message:emit('stage','M','retrying',message)
             elif 'Anfrage' in message and 'Anfragelimit' not in message:emit('stage','M','running',message)
+            emit('stage_activity','M',str(message))
         records,warn=X.run_mixid(mix,{**cfg,'_probe_progress':lambda key,d,t,detail:emit('stage_progress','M/'+key,d,t,detail)},C.env_with_ffmpeg(cfg['ffmpeg_dir']),mix_log,cancel,
             progress=lambda done,total,detail:emit('stage_progress','M',done,total,detail),
             on_hit=lambda item:emit('hits',[item]))
@@ -203,15 +205,22 @@ def parallel_scan(mix,cfg,duration,notify,cancel,split,match,stages=None,seed_ob
             on_hit=lambda record:emit('hits',[{**record,'source':'ShazamIO'}])))
         if not err:emit('stage_progress','S',len(points) or 1,len(points) or 1,'ShazamIO abgeschlossen')
         return {'shazam':records},err,f'{len(records)} Beobachtungen'
+    def google():
+        records,err,status=G.scan(mix,cfg,duration,emit,cancel)
+        emit('hits',records)
+        return {'google':records},err,status
     jobs=[]
     for enabled,name,key,fn in [(cfg.get('mixid',True),'mix-id','M',mixid),
-        (cfg.get('shazam') and cfg.get('max_shazam'),'ShazamIO','S',shazam)]:
+        (cfg.get('shazam') and cfg.get('max_shazam'),'ShazamIO','S',shazam),
+        (cfg.get('google',False) and G.readiness(cfg)[0],'Google','G',google)]:
         if key not in selected:continue
         if enabled:jobs.append((name,key,fn))
-        else:statuses[name]='Deaktiviert';emit('stage',key,'skipped','Deaktiviert')
+        else:
+            reason='Google-Zugang fehlt · Einstellungen' if key=='G' and cfg.get('google',False) else 'Deaktiviert'
+            statuses[name]=reason;emit('stage',key,'skipped',reason)
     # Queue the two slow online searches first; offline starts alongside them.
     if selected & {'A','B'}:jobs.append(('Offline',None,offline))
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    with ThreadPoolExecutor(max_workers=max(1,len(jobs)),thread_name_prefix='Scan') as pool:
         pending={pool.submit(fn):(name,key) for name,key,fn in jobs}
         while pending:
             if cancel.is_set():

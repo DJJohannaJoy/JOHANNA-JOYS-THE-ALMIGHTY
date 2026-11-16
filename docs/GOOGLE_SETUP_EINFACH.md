@@ -1,35 +1,16 @@
-# Google einrichten – so soll der einfache Weg aussehen
+# Google in ALMIGHTY
 
-**Status: Entwurf für einen noch zu bauenden und zu testenden Assistenten. Die aktuelle ALMIGHTY-Version kann Google noch nicht automatisch einrichten.**
+**Auf diesem PC ist der getestete Zugang bereits eingerichtet.** Bei einer weitergegebenen öffentlichen ZIP-Datei wird eine Zugangsdatei separat benötigt.
 
-## Warum wir den Handy-Weg verlassen
+1. ALMIGHTY öffnen und auf das Zahnrad klicken.
+2. **GOOGLE-ZUGANG IMPORTIEREN** wählen und die erhaltene `.json`-Datei öffnen.
+3. Das Häkchen **Google · eigene Musikerkennung** eingeschaltet lassen.
+4. Ein Set auswählen oder einen Link einfügen und **SCANNEN** drücken.
 
-Deine Songsuche funktioniert ohne Reqable. Mit der Aufzeichnung bricht sie ab; in den Fotos fehlen die benötigten Zugangsdaten. Deshalb ist weiterer Zertifikatsexport auf diesem Handy gerade keine sinnvolle Anleitung.
+Google läuft gleichzeitig mit den anderen Suchmethoden. Details zu jedem Ausschnitt stehen unter **Methoden / Schnipsel → Google**. **Erneut prüfen → Google** startet nur diesen Dienst neu. Erfolgreich geprüfte Ausschnitte werden aus dem Zwischenspeicher übernommen.
 
-## Das bevorzugte Ziel für normale Nutzer
+Die importierte Datei steht unter `Daten/Google/zugang.json`. Eine Kopie lässt sich für eine weitere Installation importieren. Sie enthält die Google-App-Kennung, keine Anmeldung. Ein eigener persönlicher Google-Schlüssel ist nicht erforderlich. Die Funktion auf fremden Rechnern und die zukünftige Akzeptanz durch Google sind nicht zugesichert.
 
-**Google aktivieren → Testclip prüfen → verwenden.** Kein Google-Konto und kein selbst erzeugter Cloud-Schlüssel sollen erforderlich sein. Der untersuchte Client arbeitet ohne Konto-Token. Wir müssen zuerst auf Entwicklerseite prüfen, ob seine App-Kennung unabhängig von Gerät und Sitzung wiederverwendbar ist. Ein gemeinsamer funktionierender Zugang ist bisher nicht nachgewiesen.
+Bei **PERMISSION_DENIED**, gRPC **7/16**: Google akzeptiert die Kennung nicht. Nur Google schlägt fehl; andere Scans und Ergebnisse bleiben erhalten. Bei Zeitüberschreitungen erfolgt eine begrenzte automatische Wiederholung. Eine fehlgeschlagene Anfrage wird nicht als „kein Treffer“ behandelt.
 
-Dass Googles eigene App ohne Login arbeitet, beweist keine offene API ohne App-Kennung. Unser einzelner Test ohne sämtliche Kennungen wurde mit „Zugriff verweigert“ beantwortet. Das Programm darf einen solchen Fehler nicht als erfolgreichen Test anzeigen.
-
-## Rückfalllösung: geführte Einrichtung am PC
-
-Nur wenn tatsächlich installationsbezogene Werte benötigt werden, soll dieser aufwendigere Ablauf nötig werden:
-
-1. In ALMIGHTY **Google einrichten** öffnen.
-2. Den angezeigten Download starten. Der PC bereitet ein getrenntes Android-Testsystem vor. Die bisher ermittelten Android-Pakete umfassen rund 2,2 bis 2,4 GB; zusätzlicher Platz ist nötig.
-3. **Test starten** wählen und einen eigenen bekannten Musikausschnitt auswählen. Der Assistent soll Googles Songsuche starten und die passende Anfrage automatisch auslesen.
-4. Das Programm prüft, ob dieser Zugang vom Windows-Client wirklich funktioniert.
-5. Erst bei einem gültigen Test wird Google als verfügbar angezeigt. Danach soll die vorübergehende Android-Umgebung geschlossen werden können.
-
-Du sollst keinen API-Schlüssel suchen oder abtippen müssen. Dein persönliches Handy braucht für diesen vorgesehenen PC-Weg keine Änderung.
-
-## Was daran noch entwickelt werden muss
-
-Das automatische Vorbereiten, Auslesen und Testen ist ein Produktkonzept. Zuerst muss ein echter Durchlauf beweisen, dass die konkrete Google-App in der Testumgebung funktioniert und ihre benötigten Angaben liefert. Bisher wurden Quellen, Paketgrößen und Voraussetzungen untersucht; noch kein funktionierender Schlüssel gewonnen.
-
-Der technisch relevante neue Ansatz ist eine eingebaute Netzwerkdiagnose von Cronet, beschrieben in der [Chromium-Dokumentation](https://github.com/chromium/chromium/blob/main/components/cronet/tracing.md#gathering-unredacted-netlogs). Er benötigt eine geeignete Testumgebung. Googles Verbindung wird dabei nicht durch ein anderes HTTPS-Zertifikat ersetzt.
-
-Nach diesem Nachweis lässt sich eine echte Klick-für-Klick-Anleitung schreiben. Eine angeblich schon funktionierende Ein-Klick-Lösung wäre zum jetzigen Stand irreführend.
-
-[Ausführliche Recherche und Quellen](GOOGLE_DEEP_DIVE.md)
+Auf dem Handy braucht für diese Desktop-Anbindung nichts mitgeschnitten zu werden. Die offizielle Google-App wurde bereits lokal untersucht. Die öffentliche App-ZIP enthält absichtlich keine Zugangsdatei.

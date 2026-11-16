@@ -19,8 +19,12 @@ try:
         run=subprocess.run(cmd,capture_output=True,timeout=30,creationflags=subprocess.CREATE_NO_WINDOW)
         assert run.returncode==0,(name,run.stderr.decode(errors='replace')[-250:]);checks[name]=True
     assert X.mixid_ready({});checks['mix_id']=True
+    import google_method
+    assert (app/'google_probe.mjs').is_file() and (app/'shazam_fingerprint.py').is_file()
+    run=subprocess.run([str(app/'tools/node/node.exe'),'--check',str(app/'google_probe.mjs')],capture_output=True,timeout=10,creationflags=subprocess.CREATE_NO_WINDOW)
+    assert run.returncode==0;checks['google_adapter']=True;checks['shazam_process_isolation']=True
     gui=S.AppGUI();gui.root.withdraw();gui.root.update()
-    assert gui.result_table.winfo_exists() and len(gui.method_progress)==7
+    assert gui.result_table.winfo_exists() and len(gui.method_progress)==8
     gui.root.destroy();checks['real_gui']=True
     assert C.DATA.parent==fixture and C.CONFIG_FILE.parent==fixture;checks['isolated_test_data']=True
     result={'ok':True,'checks':checks,'python':sys.version.split()[0]}

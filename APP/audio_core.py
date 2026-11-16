@@ -70,7 +70,7 @@ def hhmmss(seconds: float) -> str:
 
 def read_config() -> dict:
     defaults = {"library": DEFAULT_LIBRARY, "shazam": True, "max_shazam": DEFAULT_MAX_SHAZAM,
-                "tempo_pitch": False, "ffmpeg_dir": "", "audfprint_source": ""}
+                "google": True, "max_google": 50, "tempo_pitch": False, "ffmpeg_dir": "", "audfprint_source": ""}
     try:
         result = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
         if isinstance(result, dict):
@@ -670,26 +670,44 @@ async def shazam_probes(mix: Path, points: list[float], cfg: dict, log, cancel: 
                     if code!=0 or not chunk.is_file():raise RuntimeError('Ausschnitt nicht lesbar: '+msg[-200:])
                     detail(1,'Ausschnitt bereit')
                     # Local fingerprint work runs ahead of the shared HTTP budget.
-                    preparer=Shazam(http_client=O.ShazamHTTP())
                     signature=prepared.get(i)
                     phase='Fingerabdruck berechnen'
-                    if signature is None and hasattr(preparer,'core_recognizer'):
-                        signature=await asyncio.wait_for(preparer.core_recognizer.recognize_path(value=str(chunk)),timeout=30)
-                        prepared[i]=signature
+                    if signature is None:
+                        if getattr(Shazam,'__module__','').startswith('shazamio'):
+                            # A Rust/audio-library fault must only kill this probe,
+                            # never the Tk window and all other running scans.
+                            from types import SimpleNamespace
+                            output=O.probe_cache(DATA,mix,t,'ShazamIO-signature-v1') or tmp/f'signature-{i:04d}.json'
+                            try:
+                                value=json.loads(output.read_text(encoding='utf-8'))
+                                valid=str(value['signature']['uri']).startswith('data:') and value['signature']['samples']>0 and value.get('timezone') is not None and value.get('timestamp') is not None
+                            except (OSError,ValueError,KeyError,TypeError):valid=False
+                            if not valid:
+                                output.parent.mkdir(parents=True,exist_ok=True)
+                                code,msg=await asyncio.to_thread(run_cmd,[sys.executable,'-X','utf8',
+                                    str(APP/'shazam_fingerprint.py'),str(chunk),str(output)],env,cancel=cancel,idle_timeout=30)
+                                if code or not output.is_file():raise RuntimeError('ShazamIO-Fingerabdruck: Prozessfehler '+str(code))
+                                value=json.loads(output.read_text(encoding='utf-8'))
+                            signature=SimpleNamespace(timezone=value['timezone'],timestamp=value['timestamp'],
+                                signature=SimpleNamespace(**value['signature']))
+                        else:
+                            preparer=Shazam(http_client=O.ShazamHTTP())
+                            if hasattr(preparer,'core_recognizer'):
+                                signature=await asyncio.wait_for(preparer.core_recognizer.recognize_path(value=str(chunk)),timeout=30)
+                        if signature is not None:prepared[i]=signature
                     detail(2,'Fingerabdruck bereit · Online-Suche')
                     phase='Online-Antwort'
                     async def request():
-                        async with O.ShazamHTTP() as http:
-                            async with Shazam(http_client=http) as client:
-                                if signature is not None:return await client.send_recognize_request_v2(sig=signature)
-                                return await client.recognize(str(chunk))
+                        async with Shazam(http_client=shared_http) as client:
+                            if signature is not None:return await client.send_recognize_request_v2(sig=signature)
+                            return await client.recognize(str(chunk))
                     attempt=0
                     while True:
                         if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
-                        epoch=await gate.async_acquire(cancel,lambda s:log('Shazam: '+s))
+                        epoch=await gate.async_acquire(cancel,lambda s:log('Shazam: '+s),lane='ShazamIO')
                         try:
                             log(f'Shazam {i}/{len(points)} {hhmmss(t)}: Anfrage'+(' · erneuter Versuch' if attempt else ''))
-                            response=await asyncio.wait_for(request(),timeout=max(3,min(35,float(cfg.get('shazam_timeout',25)))))
+                            response=await asyncio.wait_for(request(),timeout=max(3,min(float(cfg.get('shazam_timeout',25)),20 if final_attempt else 12 if attempt else 8)))
                             if not isinstance(response,dict) or not (isinstance(response.get('track'),dict) and response['track'].get('title')) and response.get('matches')!=[]:
                                 raise RuntimeError('Ungültige Erkennungsantwort; kein bestätigtes Suchergebnis')
                             gate.successful(epoch)
@@ -739,25 +757,26 @@ async def shazam_probes(mix: Path, points: list[float], cfg: dict, log, cancel: 
                     if ok:detail(3,'geprüft')
                     if progress:progress(completed,len(points))
                 await asyncio.sleep(0.5)
-        tasks=[asyncio.create_task(probe(i,t)) for i,t in enumerate(points,1)]
-        try:
-            while tasks:
-                if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
-                _,pending=await asyncio.wait(tasks,timeout=.1)
-                # Read completed exceptions before dropping task references.
-                for task in set(tasks)-pending:task.result()
-                tasks=list(pending)
-            # A failing excerpt must never prevent the remaining set from running.
-            # Retry only unsuccessful excerpts; reuse their audio and fingerprints.
-            tasks=[asyncio.create_task(probe(i,t,True)) for i,t in list(pending_retry.items())]
-            while tasks:
-                if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
-                _,pending=await asyncio.wait(tasks,timeout=.1)
-                for task in set(tasks)-pending:task.result()
-                tasks=list(pending)
-        finally:
-            for task in tasks:task.cancel()
-            if tasks:await asyncio.gather(*tasks,return_exceptions=True)
+        async with O.ShazamHTTP() as shared_http:
+            tasks=[asyncio.create_task(probe(i,t)) for i,t in enumerate(points,1)]
+            try:
+                while tasks:
+                    if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
+                    _,pending=await asyncio.wait(tasks,timeout=.1)
+                    # Read completed exceptions before dropping task references.
+                    for task in set(tasks)-pending:task.result()
+                    tasks=list(pending)
+                # A failing excerpt must never prevent the remaining set from running.
+                # Retry only unsuccessful excerpts; reuse their audio and fingerprints.
+                tasks=[asyncio.create_task(probe(i,t,True)) for i,t in list(pending_retry.items())]
+                while tasks:
+                    if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
+                    _,pending=await asyncio.wait(tasks,timeout=.1)
+                    for task in set(tasks)-pending:task.result()
+                    tasks=list(pending)
+            finally:
+                for task in tasks:task.cancel()
+                if tasks:await asyncio.gather(*tasks,return_exceptions=True)
     # Independent observations of the same recording at nearby positions support a stronger claim.
     for a in results:
         if any(b is not a and b["title"].casefold()==a["title"].casefold()

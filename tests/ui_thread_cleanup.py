@@ -43,6 +43,7 @@ with patch.object(S.AppGUI,'check_local_ai'),patch.object(S.AppGUI,'_refresh_rea
     cycles=[0]
     def dialogs():
         cycles[0]+=1
+        app.toggle_language()
         app.show_results();app.results_window.window.destroy()
         app.configure_local_ai()
         for window in app.root.winfo_children():

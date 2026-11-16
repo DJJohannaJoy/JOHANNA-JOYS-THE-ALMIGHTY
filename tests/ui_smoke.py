@@ -61,7 +61,7 @@ with fixture_directory() as td:
                     parent=parent.master
             assert app.stagebar.bbox('all')[3]<=app.stagebar.winfo_height(),geometry
             assert not any(app.stagebar.type(i)=='rectangle' for i in app.stagebar.find_all())
-            assert len(app.progress_panel.rows)==7
+            assert len(app.progress_panel.rows)==8
             assert abs(app.save_button.winfo_width()-app.retry_button.winfo_width())<=1
             assert app.start_button.winfo_height()>=64
             assert app.start_button.master==app.rekordbox_button.master
@@ -161,7 +161,7 @@ with fixture_directory() as td:
         assert not any(app.start_button.type(i)=='rectangle' for i in app.start_button.find_all())
         app.show_retry_methods();app.root.update()
         retry_buttons=[w for w in descendants(app.retry_dialog) if isinstance(w,S.BloodButton)]
-        assert len(retry_buttons)==5 and all(not b.disabled for b in retry_buttons)
+        assert len(retry_buttons)==6 and all(not b.disabled for b in retry_buttons)
         app.retry_dialog.destroy()
         app._running(True);before=dict(app.raw_hits)
         app.start_scan(stages={'S'})

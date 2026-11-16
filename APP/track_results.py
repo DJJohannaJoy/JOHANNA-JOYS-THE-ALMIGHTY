@@ -37,6 +37,8 @@ def evidence(item):
         methods=item.get('methods') or [method]
         detail='audfprint · '+Path(item.get('full_path') or item.get('title','')).name
         catalog='Lokale Musikdatenbank'
+    elif source.casefold()=='google':
+        methods=['Google'];detail='Google Song Search · Google-Katalog';catalog='Google'
     else:
         methods=[source if source.lower()!='shazam' else 'ShazamIO']
         detail='Shazam-Katalog · '+('mix-id' if source.lower()=='mix-id' else 'ShazamIO')

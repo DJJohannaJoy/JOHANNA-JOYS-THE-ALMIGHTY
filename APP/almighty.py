@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Johanna Joy's THE ALMIGHTY · 1.14.4 EMBER | Windows | Anthrazit + Karminrot.
+"""Johanna Joy's THE ALMIGHTY · 3.00 IGNITION | Windows | Anthrazit + Karminrot.
 Prototype, source included. Never overwrites the user's source audio/library.
 """
 from __future__ import annotations
@@ -277,6 +277,7 @@ class AppGUI:
         self._input_kind='file';self._download_cache={}
         self.set_path.trace_add('write',lambda *args:self._select_input('file'))
         self.media_url.trace_add('write',lambda *args:self._select_input('link'))
+        self.use_google = tk.BooleanVar(value=bool(self.cfg.get('google', True)))
         self.use_shazam = tk.BooleanVar(value=bool(self.cfg.get('shazam', True)))
         self.pitch = tk.BooleanVar(value=bool(self.cfg.get('tempo_pitch', False)))
         self.exhaustive_tempo = tk.BooleanVar(value=bool(self.cfg.get('exhaustive_tempo',False)))
@@ -319,8 +320,9 @@ class AppGUI:
                         fg=color, bg=bg or parent.cget('bg'), anchor='w')
 
     def _language_tick(self):
-        self.language.apply(self.root)
-        self.root.after(300,self._language_tick)
+        # German is the source language. Avoid scanning every widget 3x/sec.
+        if self.language.code=='en':self.language.apply(self.root)
+        self.root.after(1000,self._language_tick)
 
     def toggle_language(self):
         self.language.code='en' if self.language.code=='de' else 'de'
@@ -331,7 +333,7 @@ class AppGUI:
         def repaint(widget):
             if isinstance(widget,BloodButton):widget._paint()
             elif hasattr(widget,'_language_redraw'):widget._language_redraw()
-            for child in widget.winfo_children():repaint(child)
+            for child in tuple(widget.children.values()):repaint(child)
         repaint(self.root)
         self.header._last_width=0;self.header.redraw();self.stagebar.redraw()
         self.progress_panel.update()
@@ -374,6 +376,8 @@ class AppGUI:
         self._button(self.settings,'Vorhandene .pklz-Datenbank importieren',self.import_db,bg=PANEL2).pack(fill='x')
         trow=tk.Frame(self.settings,bg=PANEL)
         trow.pack(fill='x',pady=7)
+        self._check(trow,'Google · eigene Musikerkennung',self.use_google).pack(anchor='w')
+        self._button(trow,'GOOGLE-ZUGANG IMPORTIEREN',self.import_google_access,bg=PANEL2).pack(fill='x',pady=3)
         self._check(trow,'ShazamIO · zusätzliche verteilte Proben',self.use_shazam).pack(anchor='w')
         self._check(trow,'Gründliche Suche: 20 statt 6 Tempofaktoren (langsamer)',self.exhaustive_tempo).pack(anchor='w')
         self._check(trow,'Tempoänderungen ohne Key Lock prüfen (langsamer)',self.pitch).pack(anchor='w')
@@ -390,7 +394,6 @@ class AppGUI:
         kirow.pack(fill='x',pady=(4,3))
         self._button(kirow,'LM STUDIO HERUNTERLADEN',self.install_local_ai,bg=RED_DARK).pack(side='left',fill='x',expand=True,padx=(0,4))
         self._button(kirow,'KI-VERBINDUNG PRÜFEN',self.check_local_ai,bg=PANEL2).pack(side='left',fill='x',expand=True)
-        self._button(self.settings,'ALTERNATIVE: OLLAMA',self.install_ollama,bg=PANEL2).pack(fill='x')
         self._label(self.settings,'Die KI bewertet Remix-Grenzfälle anhand echter Fingerprints und gefundener Metadaten.',
                     9,color=MUTED,bg=PANEL).pack(anchor='w',pady=(8,2))
         self._button(self.settings,'ERGEBNISORDNER ÖFFNEN',lambda:self._open(C.OUTPUT),bg=PANEL2).pack(fill='x',pady=(10,3))
@@ -480,6 +483,7 @@ class AppGUI:
                         self.stagebar.percentages[key]=value
                         redraw_needed=True
                     if key in self.stagebar.percentages or key=='KI':
+                        self.progress.set(detail)
                         enabled=[v for k,v in self.stagebar.percentages.items() if k not in self.stagebar.skipped]
                         if 'KI' in self.progress_tasks and 'KI' not in self.stagebar.percentages:enabled.append(self.progress_tasks['KI']['percent'])
                         self.progressbar.set_progress(sum(enabled)/max(1,len(enabled))/100)
@@ -523,13 +527,13 @@ class AppGUI:
                     if self._ai_findings:self.last_scan['results']['ai_review']=self._ai_findings
                     self._scan_archive_pending=False
                     self._completion_context=event[1]
-                    self._resume_pending={k for k,v in self.stage_status.items() if k in {'A','B','M','S'} and v['state'] not in ('done','skipped')}
+                    self._resume_pending={k for k,v in self.stage_status.items() if k in {'A','B','M','S','G'} and v['state'] not in ('done','skipped')}
                     self.start_button.configure(text='SCANNEN')
                     self.save_current_set(quiet=True)
                     enabled=[v for k,v in self.stagebar.percentages.items() if k not in self.stagebar.skipped]
                     ai_active=self.stage_status.get('KI',{}).get('state') not in ('done','skipped',None)
                     self.progressbar.set_progress(sum(enabled)/len(enabled)/100 if self._resume_pending or ai_active else 1)
-                    failed=sum(v['state'] in ('failed','paused') for k,v in self.stage_status.items() if k in {'A','B','M','S'})
+                    failed=sum(v['state'] in ('failed','paused') for k,v in self.stage_status.items() if k in {'A','B','M','S','G'})
                     self.progress.set('Teilprüfung gespeichert · Methoden offen · SCANNEN zum Fortsetzen' if self._resume_pending else
                                       f'100 % · Beendet mit {failed} fehlerhaften Methoden · Erneut prüfen' if failed else
                                       'Scan gespeichert · KI-Nachprüfung läuft im Hintergrund' if ai_active else '100 % · Scan beendet · Ergebnis gespeichert')
@@ -654,6 +658,7 @@ class AppGUI:
         self._ai_findings={};self._ai_by_track={}
         self._ai_live_detail='';self._ai_live_started=time.monotonic()
         for key in [k for k in self.progress_tasks if k=='KI' or k.startswith('KI/')]:self.progress_tasks.pop(key,None)
+        cfg={**cfg,'ai_final_after_scans':True}
         worker=A.Audit(path,cfg,C.DATA,self._notify,match=do_match,duration=duration,
                        core_cancel=core_cancel,audio_ready=not offline_pending)
         self._ai_worker=worker;self._notify('stage','KI','waiting','KI-Nachprüfung startet')
@@ -763,7 +768,7 @@ class AppGUI:
     def show_retry_methods(self):
         dialog=tk.Toplevel(self.root);dialog.title('Einzelne Methoden erneut prüfen')
         self.retry_dialog=dialog
-        dialog.geometry('820x550');dialog.configure(bg=PANEL);dialog.transient(self.root)
+        dialog.geometry('820x640');dialog.configure(bg=PANEL);dialog.transient(self.root)
         tk.Label(dialog,text='Erfolgreiche Treffer bleiben erhalten.',bg=PANEL,fg=FG,
                  font=('Segoe UI',12,'bold')).pack(anchor='w',padx=16,pady=(16,8))
         notice=tk.Label(dialog,bg=PANEL,fg=MUTED,anchor='w');notice.pack(fill='x',padx=16)
@@ -773,7 +778,7 @@ class AppGUI:
             dialog.destroy()
             if key=='KI':self.start_ai_method(force=True)
             else:self.start_scan(stages={key})
-        for key,name in [('A','SCHNELLSCAN'),('B','TIEFENSCAN 1'),('M','TIEFENSCAN 2 · mix-id'),('S','SHAZAM · ShazamIO'),('KI','KI · REMIXES / GRENZFÄLLE / FUNDSTELLEN')]:
+        for key,name in [('A','SCHNELLSCAN'),('B','TIEFENSCAN'),('M','MIX-ID'),('S','SHAZAM · ShazamIO'),('G','GOOGLE · SONG SEARCH'),('KI','KI · REMIXES / GRENZFÄLLE / FUNDSTELLEN')]:
             row=tk.Frame(dialog,bg=PANEL,padx=16,pady=10);row.pack(fill='x')
             button=BloodButton(row,'ERNEUT STARTEN',lambda k=key:launch(k),width=160,height=35,font_size=10)
             button.pack(side='right',padx=(12,0))
@@ -809,12 +814,12 @@ class AppGUI:
                 for track in saved.get('tracks',[]):
                     if not track.get('evidence'):
                         methods=track.get('methods',[])
-                        observed.append({**track,'source':'offline' if track.get('full_path') else 'mix-id' if 'mix-id' in methods else 'ShazamIO',
+                        observed.append({**track,'source':'offline' if track.get('full_path') else 'mix-id' if 'mix-id' in methods else 'Google' if 'Google' in methods else 'ShazamIO',
                                          '_observed_order':len(observed)+1})
                     for ev in track.get('evidence',[]):
                         local=bool(ev.get('path'));methods=ev.get('methods',[])
                         item={'artist':track.get('artist',''),'title':track['title'],'time':ev['time'],
-                              'source':'offline' if local else 'mix-id' if 'mix-id' in methods else 'ShazamIO',
+                              'source':'offline' if local else 'mix-id' if 'mix-id' in methods else 'Google' if 'Google' in methods else 'ShazamIO',
                               'first_detection':track.get('first_detection',ev['time']),
                               'last_detection':track.get('last_detection',ev['time']),
                               'url':ev.get('url',''),'_observed_order':ev.get('order',len(observed)+1)}
@@ -831,6 +836,7 @@ class AppGUI:
             results={'offline':[r for r in observed if r.get('source')=='offline'],'weak':[],
                      'mixid':[r for r in observed if r.get('source')=='mix-id'],
                      'shazam':[r for r in observed if r.get('source') in {'shazam','ShazamIO'}],
+                     'google':[r for r in observed if r.get('source')=='Google'],
                      'observations':observed}
             statuses=saved.get('statuses',{});errors=saved.get('errors',[])
             self.last_scan={'path':str(path),'duration':saved.get('duration',0),'results':results,'statuses':statuses,'errors':errors,'report':saved.get('source_report') or str(report.with_suffix('.txt'))}
@@ -850,10 +856,10 @@ class AppGUI:
             results['progress']=progress
             self.progress_tasks.update(progress.get('tasks',{}))
             self._resume_pending=set()
-            for key,name in [('A','Offline'),('B','Offline'),('M','mix-id'),('S','ShazamIO')]:
+            for key,name in [('A','Offline'),('B','Offline'),('M','mix-id'),('S','ShazamIO'),('G','Google')]:
                 status=str(statuses.get(name,'Nicht ausgeführt'))
                 state='failed' if 'fehler' in status.casefold() else 'skipped' if name not in statuses or 'deaktiviert' in status.casefold() else 'done'
-                if key in {'M','S'} and any('429' in str(e) and (str(e).startswith('mix-id') if key=='M' else str(e).startswith('Shazam')) for e in errors):state='paused'
+                if key in {'M','S'} and any('429' in str(e) and (str(e).startswith('mix-id') if key=='M' else str(e).startswith('Shazam')) for e in errors):state='failed'
                 state=progress.get('states',{}).get(key,{}).get('state',state)
                 if state in ('paused','retrying','running'):
                     state='waiting';self._resume_pending.add(key)
@@ -894,7 +900,8 @@ class AppGUI:
     def _running(self,state):
         self.running=state
         for entry in (self.file_entry,self.link_entry):entry.configure(state='disabled' if state else 'normal')
-        for button in (self.file_button,self.link_button):button.configure(state='disabled' if state else 'normal')
+        self.file_button.configure(state='disabled' if state else 'normal')
+        self.link_button.configure(state='disabled')
         self.start_button.configure(state='disabled' if state else 'normal')
         self.index_button.configure(state='disabled' if state else 'normal')
         self.retry_button.configure(state='disabled' if state else 'normal')
@@ -918,19 +925,22 @@ class AppGUI:
             mix = X.mixid_ready({**self.cfg,'mixid_dir':self.mixid_dir.get()})
             importlib.invalidate_caches()
             shazam = importlib.util.find_spec('shazamio') is not None
+            import google_method as G
+            google_ready,_=G.readiness(self.cfg)
             checks = {
                 'ffmpeg':(bool(ff),'Bereit' if ff else 'Fehlt'),
                 'db':(C.DB.is_file(),probe_database()),
                 'offline':(offline,'Bereit' if offline else 'Fehlt'),
                 'mixid':(mix,'Bereit' if mix else 'Fehlt'),
-                'shazam':(shazam,'Bereit' if shazam else 'Fehlt')
+                'shazam':(shazam,'Bereit' if shazam else 'Fehlt'),
+                'google':(google_ready,'Eingerichtet' if google_ready else 'Fehlt')
             }
             if ff:
                 self.cfg['ffmpeg_dir']=ff
             for key,(ready,detail) in checks.items():
                 icon,txt=self.statuses[key]
                 fix=self.status_actions.get(key)
-                disabled=(key=='shazam' and not self.use_shazam.get()) or (key=='mixid' and not self.mixid_enabled.get())
+                disabled=(key=='shazam' and not self.use_shazam.get()) or (key=='mixid' and not self.mixid_enabled.get()) or (key=='google' and not self.use_google.get())
                 if disabled:
                     icon.configure(text='–',fg=YELLOW)
                     txt.configure(text='Aus',fg=YELLOW)
@@ -946,6 +956,21 @@ class AppGUI:
                         txt.grid()
         finally:
             self._refresh_handle=self.root.after(2500,self._refresh_readiness)
+
+    def show_prerequisites_info(self):
+        from ui_workspace import shell
+        window=shell(self,'Voraussetzungen und Google einrichten','850x680')
+        window.minsize(700,580)
+        text=("MITGELIEFERT\nPython, FFmpeg, Node.js, Offline-Engine, MIX-ID, ShazamIO und das Google-Modul sind im Programmordner enthalten. Nicht einzeln installieren.\n\n"
+              "GOOGLE EINRICHTEN\n1. Bei der lokalen Komplettversion ist der Google-Zugang bereits dabei.\n2. Falls Google als fehlend angezeigt wird: GOOGLE-ZUGANG IMPORTIEREN anklicken und die erhaltene Zugangsdatei (.json) auswählen.\n3. In den Einstellungen Google · eigene Musikerkennung einschalten.\n4. Set auswählen oder einen Link ins Eingabefeld einsetzen und SCANNEN drücken.\n\n"
+              "Die Zugangsdatei wird unter Daten/Google/zugang.json gespeichert. Nach dem Verschieben des kompletten Programmordners bleibt sie verfügbar. Du brauchst dafür keine Google-App auf Windows, kein Android-Handy und keine Google-Anmeldung. Die Verbindung wird beim Scan geprüft.\n\n"
+              "GOOGLE FEHLER\nPERMISSION_DENIED bedeutet, dass Google die App-Kennung nicht akzeptiert. Dann eine aktuelle Zugangsdatei importieren. Eine gültig eingerichtete Datei garantiert keine dauerhafte Freigabe durch Google.\n\n"
+              "LOKALE MUSIK UND KI\nFür den Offline-Abgleich eine eigene Musikdatenbank anlegen oder importieren. Für die KI LM Studio öffnen, ein Chat-Modell laden und den lokalen Server auf Port 1234 starten.")
+        body=scrolledtext.ScrolledText(window,wrap='word',bg=PANEL2,fg=FG,font=('Segoe UI',11),relief='flat',padx=16,pady=12)
+        body.pack(fill='both',expand=True,padx=20,pady=(0,12));body.insert('1.0',text);body.configure(state='disabled');body._no_translate=True
+        row=tk.Frame(window,bg=PANEL);row.pack(fill='x',padx=20,pady=(0,16))
+        self._button(row,'GOOGLE-ZUGANG IMPORTIEREN',self.import_google_access,bg=PANEL2).pack(side='left',fill='x',expand=True,padx=(0,8))
+        self._button(row,'SCHLIESSEN',window.destroy,bg=RED_DARK).pack(side='left',fill='x',expand=True)
 
     def fix_prerequisite(self,key):
         """Actionable red X: one click goes to the actual repair, not an inert label."""
@@ -972,6 +997,8 @@ class AppGUI:
                 return
             self.start_index()
             return
+        if key=='google':
+            self.import_google_access();self._refresh_readiness();return
         comp={'ffmpeg':'ffmpeg','offline':'audfprint','mixid':'mixid','shazam':'libraries'}.get(key)
         if not comp:
             return
@@ -1017,9 +1044,6 @@ class AppGUI:
             '4. Hier auf KI-VERBINDUNG PRÜFEN klicken.\n\n'
             'WICHTIG: Das Modell erkennt keine Musik. Es prüft ausschließlich den Trefferbericht.')
 
-    def install_ollama(self):
-        webbrowser.open('https://ollama.com/download/windows')
-
     def open_local_ai(self):
         path=L.find_lmstudio(self.cfg)
         if not path:
@@ -1038,20 +1062,13 @@ class AppGUI:
         y=self.root.winfo_rooty()+max(0,(self.root.winfo_height()-460)//2)
         dialog.geometry(f'720x460+{x}+{y}');dialog.minsize(640,440);dialog.transient(self.root)
         body=tk.Frame(dialog,bg=PANEL,padx=22,pady=16);body.pack(fill='both',expand=True)
-        provider=tk.StringVar(value=self.cfg.get('local_ai_provider','LM Studio'))
+        provider=tk.StringVar(value='LM Studio')
         _,initial_base=L.connection(self.cfg)
         base=tk.StringVar(value=initial_base);model=tk.StringVar(value=self.cfg.get('local_ai_model',''))
         path=tk.StringVar(value=L.find_lmstudio(self.cfg) or '')
         status=tk.StringVar(value='Modelle werden gesucht …')
-        for caption,var in [('Anbieter',provider),('Lokaler Server',base)]:
-            self._label(body,caption,bold=True).pack(anchor='w',pady=(7,3))
-            if var is provider:field=ttk.Combobox(body,textvariable=var,values=['LM Studio','Ollama'],state='readonly')
-            else:field=self._entry(body,var)
-            field.pack(fill='x')
-        def provider_changed(*_):
-            base.set('http://127.0.0.1:1234' if provider.get()=='LM Studio' else 'http://127.0.0.1:11434')
-            model.set('')
-        provider.trace_add('write',provider_changed)
+        self._label(body,'Lokaler Server · LM Studio',bold=True).pack(anchor='w',pady=(7,3))
+        self._entry(body,base).pack(fill='x')
         self._label(body,'Chat-Modell (z. B. Gemma)',bold=True).pack(anchor='w',pady=(8,3))
         models=ttk.Combobox(body,textvariable=model);models.pack(fill='x')
         self._label(body,'LM Studio · Programmdatei',bold=True).pack(anchor='w',pady=(8,3))
@@ -1167,6 +1184,16 @@ class AppGUI:
         self._notify('log','Datenbank importiert: '+filename)
         self._refresh_readiness()
 
+    def import_google_access(self):
+        import google_method as G
+        chosen=filedialog.askopenfilename(title='Google-Zugang importieren',filetypes=[('Google-Zugang','*.json')])
+        if not chosen:return
+        try:
+            target=G.import_access(chosen,C.USER_ROOT/'Google'/'zugang.json')
+            self.cfg['google_headers_file']=str(target);self.cfg['google']=True;self.use_google.set(True);C.save_config(self.cfg)
+            messagebox.showinfo('Google','Zugang eingerichtet. Google startet beim nächsten Scan parallel.\nDie Verbindung wird mit dem ersten Audioausschnitt geprüft.')
+        except Exception as exc:messagebox.showerror('Google',str(exc))
+
     def _settings_cfg(self):
         try: limit=int(self.max_shazam.get())
         except ValueError: raise RuntimeError('Shazam-Limit muss eine Zahl sein.')
@@ -1175,7 +1202,7 @@ class AppGUI:
                            'trackid_backend','max_trackid'}}
         cfg={**base,'library':self.library.get().strip(),
              'local_ai_method':self.use_ai_method.get(),
-             'shazam':self.use_shazam.get(),
+             'shazam':self.use_shazam.get(),'google':self.use_google.get(),
              'tempo_pitch':self.pitch.get(),
              'exhaustive_tempo':self.exhaustive_tempo.get(),
              'max_shazam':max(0,min(limit,250)),
@@ -1242,14 +1269,14 @@ class AppGUI:
     def _phase_ui(self):
         if not hasattr(self,'phase_label'):return
         states={k:v.get('state') for k,v in self.stage_status.items()}
-        core=[states.get(k,'waiting') for k in ('A','B','M','S')]
+        core=[states.get(k,'waiting') for k in ('A','B','M','S','G')]
         if states.get('setup') in ('running','retrying','failed'):
             text='1 · VORBEREITEN';color=BAD if states['setup']=='failed' else RED_BRIGHT
         elif all(s in ('done','failed','skipped') for s in core):
             text='3 · PRÜFEN / BEARBEITEN';color=RED_BRIGHT if states.get('KI') in ('running','retrying') else FG
         elif any(s in ('running','retrying','done','failed') for s in core):
             text='2 · ERKENNEN';color=RED_BRIGHT
-        else:text='1 VORBEREITEN · 2 ERKENNEN · 3 PRÜFEN';color=MUTED
+        else:text='BEREIT';color=MUTED
         self.phase_label.configure(text=text,fg=color)
 
     def start_scan(self,stages=None):
@@ -1265,7 +1292,7 @@ class AppGUI:
         self._set_workspace_empty(False)
         if stages is None and self._resume_pending and self.last_scan and self.last_scan['path']==str(path):
             stages=set(self._resume_pending)
-        selected=set(stages if stages is not None else ('A','B','M','S'))
+        selected=set(stages if stages is not None else ('A','B','M','S','G'))
         if selected & {'A','B'} and not C.DB.is_file():
             messagebox.showwarning('Datenbank fehlt', 'Bitte erst unter Einstellungen eine lokale Musikdatenbank erstellen oder importieren.')
             self.toggle_settings() if not self.settings_open else None
@@ -1276,6 +1303,7 @@ class AppGUI:
             previous={'path':str(path),'results':{'offline':[h for h in observed if h.get('source')=='offline'],
                 'weak':[],'mixid':[h for h in observed if h.get('source')=='mix-id'],
                 'shazam':[h for h in observed if h.get('source') in {'shazam','ShazamIO'}],
+                 'google':[h for h in observed if h.get('source')=='Google'],
                 'observations':observed},'statuses':{},'errors':[]}
         self.save_current_set(quiet=True)
         if self._ai_worker:self._ai_worker.abort();self._ai_worker=None
@@ -1289,7 +1317,7 @@ class AppGUI:
             for item in self.result_table.get_children():self.result_table.delete(item)
             for key in self.stages:self._stage_ui(key,'waiting','Wartet')
             if stages is not None:
-                for key in {'A','B','M','S'}-selected:self._stage_ui(key,'skipped','Nicht für diesen Lauf gewählt')
+                for key in {'A','B','M','S','G'}-selected:self._stage_ui(key,'skipped','Nicht für diesen Lauf gewählt')
         else:
             for key in list(self.progress_tasks):
                 if key.split('/')[0] in selected | {'setup','E','KI'}:del self.progress_tasks[key]
@@ -1322,7 +1350,7 @@ class AppGUI:
             self._notify('stage_progress','setup',100,100,'Datei bereit · '+C.hhmmss(duration))
             audit=None;offline_pending=set(selected & {'A','B'})
             if cfg.get('local_ai_method',False):
-                audit=self._start_audit(path,cfg,duration,previous['results']['observations'] if previous else (),self.cancel,False)
+                audit=self._start_audit(path,cfg,duration,previous['results']['observations'] if previous else (),self.cancel,bool(selected & {'A','B'}))
             else:self._notify('stage','KI','skipped','KI-Methode deaktiviert')
             def scan_notify(kind,*args):
                 if audit:
@@ -1338,12 +1366,12 @@ class AppGUI:
                 old_progress=previous['results'].get('progress',{})
                 new_progress=current.get('progress',{})
                 result['progress']={group:{**old_progress.get(group,{}),**new_progress.get(group,{})} for group in ('tasks','states')}
-                for keys,stage in [(('offline','weak'),'A'),(('offline','weak'),'B'),(('mixid',),'M'),(('shazam',),'S')]:
+                for keys,stage in [(('offline','weak'),'A'),(('offline','weak'),'B'),(('mixid',),'M'),(('shazam',),'S'),(('google',),'G')]:
                     if stage in selected:
                         for key in keys:result[key]=current[key]
                 engine_status={**previous['statuses'],**engine_status}
                 def affected(error):
-                    keys={'S'} if str(error).startswith('Shazam') else {'M'} if str(error).startswith('mix-id') else {'A','B'}
+                    keys={'G'} if str(error).startswith('Google') else {'S'} if str(error).startswith('Shazam') else {'M'} if str(error).startswith('mix-id') else {'A','B'}
                     return bool(keys & selected)
                 errors=[e for e in previous['errors'] if not affected(e)]+errors
             offline,weak,mix_hits,sha=(result[k] for k in ('offline','weak','mixid','shazam'))
@@ -1367,6 +1395,7 @@ class AppGUI:
                 'statuses':engine_status,'errors':errors,'report':str(report)})
             return (f'Scan abgeschlossen: {len(merged)} nummerierte Tracks.\nOffline: {len(offline)} Kandidaten'
                     f'\nmix-id: {len(mix_hits)} Treffer'
+                    f'\nGoogle: {len(result.get("google",[]))} Beobachtungen'
                     f'\nShazamIO: {len(sha)} Beobachtungen\nHinweise / Fehler: {len(errors)}\nTXT: {report}')
         self._launch(job)
 
