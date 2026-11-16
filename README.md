@@ -1,6 +1,6 @@
 # JOHANNA JOY'S THE ALMIGHTY
 
-**Version 3.00 · IGNITION · Windows x64**
+**Version 2.30 · IGNITION · Windows x64**
 
 Datei oben auswählen oder Link unten einfügen und einmal **SCANNEN** drücken: Das Set wird automatisch geladen und verarbeitet, anschließend von den parallelen Methoden erkannt und von der lokalen KI nachgeprüft. Echte Download- und Verarbeitungsschritte erscheinen im Fortschritt. Die zuletzt gewählte Quelle hat Vorrang; bereits geladene Links werden bei Einzelprüfungen wiederverwendet.
 

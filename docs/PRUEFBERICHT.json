@@ -1,18 +1,16 @@
 {
-  "version": "3.00",
+  "version": "2.30",
   "codename": "IGNITION",
   "current_changes_tested": false,
-  "reason": "Keine weiteren Tests auf ausdrücklichen Nutzerwunsch.",
+  "reason": "Keine weiteren Tests auf ausdrücklichen Nutzerwunsch. Symbole als Grafik betrachtet; Paket gebaut.",
   "changes": [
-    "Vollständige Voraussetzungen mit Google und Infofenster",
-    "Link-Schaltfläche dauerhaft deaktiviert",
-    "Phasen- und Aktivitätsanzeige in rotem Statusrahmen",
-    "Parallele KI-Quellenvorbereitung mit abschließender Prüfung",
-    "Ollama-Integration vollständig entfernt",
-    "Allgemeiner Hinweisblock aus Tracklist entfernt"
+    "Sichtbarer Info-Knopf mit reserviertem Platz",
+    "PHASE vor allen drei Phasenbezeichnungen",
+    "Bibliothek und Sprachwahl neu gezeichnet mit weichen roten Rändern",
+    "Rote Codezeichen in Dropzone und Hintergrund; schwarze Arbeitsbereiche erhalten"
   ],
   "prior_validation": {
-    "version": "3.00",
+    "version": "1.14.5",
     "regression_tests": 27,
     "passed": true,
     "packaged_program": {
@@ -109,6 +107,6 @@
     },
     "codename": "IGNITION",
     "current_changes_tested": false,
-    "test_policy": "Keine weiteren Tests auf ausdrücklichen Nutzerwunsch; bisherige Ergebnisse beziehen sich auf 1.14.5."
+    "test_policy": "Historische Prüfergebnisse zu 1.14.5; keine neue Prüfung für 2.30."
   }
 }

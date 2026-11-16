@@ -165,6 +165,102 @@ class BloodButton(tk.Canvas):
             self.create_rectangle(x+4,y+11,x+14,y+18,outline=self.fgcolor)
 
 
+
+@lru_cache(maxsize=8)
+def _header_control_art(kind,size=(83,80),active='de'):
+    """Supersampled metal symbols and soft neon chrome, drawn by the UI."""
+    from PIL import ImageFont
+    k=4;w,h=size;W,H=w*k,h*k
+    image=Image.new('RGBA',(W,H))
+    glow=Image.new('RGBA',image.size)
+    bounds=(5*k,5*k,(w-6)*k,(h-6)*k)
+    ImageDraw.Draw(glow).rounded_rectangle(bounds,radius=10*k,outline=(255,12,44,185),width=3*k)
+    image.alpha_composite(glow.filter(ImageFilter.GaussianBlur(3*k)))
+    surface=Image.new('RGBA',image.size)
+    d=ImageDraw.Draw(surface)
+    for y in range(H):
+        v=round(7+17*math.exp(-y/(H*.3)))
+        d.line((0,y,W,y),fill=(v+3,v,v+2,255))
+    mask=Image.new('L',image.size)
+    ImageDraw.Draw(mask).rounded_rectangle(bounds,radius=10*k,fill=255)
+    surface.putalpha(mask);image.alpha_composite(surface)
+    d=ImageDraw.Draw(image)
+    d.rounded_rectangle(bounds,radius=10*k,outline='#EE1837',width=k)
+    d.line((18*k,7*k,(w-19)*k,7*k),fill='#FF697A',width=k//2)
+    def line(points,fill='#D4D5DB',width=1.4):
+        d.line([(round(x*k),round(y*k)) for x,y in points],fill=fill,width=max(1,round(width*k)),joint='curve')
+    if kind=='book':
+        # Offset page layers, shaded leaves and a curved centre spine.
+        left=[(w*.5,h*.33),(w*.40,h*.27),(w*.24,h*.26),(w*.24,h*.67),(w*.40,h*.69),(w*.5,h*.76)]
+        right=[(w*.5,h*.33),(w*.60,h*.27),(w*.76,h*.26),(w*.76,h*.67),(w*.60,h*.69),(w*.5,h*.76)]
+        line([(x,y+3) for x,y in left],fill='#686C76',width=2)
+        line([(x,y+3) for x,y in right],fill='#686C76',width=2)
+        d.polygon([(round(x*k),round(y*k)) for x,y in left],fill='#282A30')
+        d.polygon([(round(x*k),round(y*k)) for x,y in right],fill='#191C22')
+        line(left,fill='#ECECF0',width=1.8);line(right,fill='#ECECF0',width=1.8)
+        line([(w*.5,h*.33),(w*.5,h*.75)],fill='#FFFFFF',width=1.5)
+        for y in (.39,.48,.57,.65):
+            line([(w*.30,h*y),(w*.39,h*(y+.005)),(w*.445,h*(y+.035))],fill='#AEB1BA',width=.9)
+            line([(w*.555,h*(y+.035)),(w*.61,h*(y+.005)),(w*.70,h*y)],fill='#AEB1BA',width=.9)
+        d.polygon([(round(w*.65*k),round(h*.27*k)),(round(w*.70*k),round(h*.27*k)),(round(w*.70*k),round(h*.43*k)),(round(w*.675*k),round(h*.40*k)),(round(w*.65*k),round(h*.43*k))],fill='#EA2142')
+    else:
+        cx,cy=w/2,h*.34;radius=h*.145
+        d.ellipse(((cx-radius)*k,(cy-radius)*k,(cx+radius)*k,(cy+radius)*k),outline='#E0E2E8',width=round(1.4*k))
+        d.ellipse(((cx-radius*.44)*k,(cy-radius)*k,(cx+radius*.44)*k,(cy+radius)*k),outline='#AEB4C1',width=k)
+        line([(cx-radius,cy),(cx+radius,cy)],fill='#CDD0D8',width=1)
+        y0,y1=round(h*.57*k),round(h*.82*k);x0,x1=round(w*.18*k),round(w*.82*k);mid=(x0+x1)//2
+        d.rounded_rectangle((x0,y0,x1,y1),radius=5*k,fill='#0A0B0E',outline='#5A303B',width=k)
+        selection=(x0,y0,mid,y1) if active=='de' else (mid,y0,x1,y1)
+        d.rounded_rectangle(selection,radius=5*k,fill='#8E1029',outline='#EF314F',width=k)
+        try:font=ImageFont.truetype('C:/Windows/Fonts/seguisb.ttf',13*k)
+        except OSError:font=ImageFont.load_default(size=13*k)
+        for code,x in [('DE',(x0+mid)/2),('EN',(mid+x1)/2)]:
+            box=d.textbbox((0,0),code,font=font)
+            d.text((x-(box[2]-box[0])/2,(y0+y1)/2-(box[3]-box[1])/2-box[1]),code,font=font,fill='#FFFFFF' if active==code.lower() else '#A5A6AF')
+    return image.resize(size,Image.Resampling.LANCZOS)
+
+
+@lru_cache(maxsize=6)
+def _matrix_art(width,height,seed=37):
+    """Static red code texture. Resizing redraws it; scanning never animates it."""
+    import random
+    from PIL import ImageFont
+    w,h=max(1,width),max(1,height);rng=random.Random(seed)
+    image=Image.new('RGB',(w,h),'#120307');d=ImageDraw.Draw(image)
+    for y in range(h):
+        glow=round(7*math.sin(math.pi*y/max(1,h)))
+        d.line((0,y,w,y),fill=(17+glow,3,7))
+    try:font=ImageFont.truetype('C:/Windows/Fonts/consola.ttf',10)
+    except OSError:font=ImageFont.load_default(size=10)
+    alphabet='01010123456789ABCDEF'
+    for x in range(2,w,15):
+        offset=rng.randrange(-12,8);head=rng.randrange(max(1,h//12))
+        for row,y in enumerate(range(offset,h,12)):
+            if rng.random()<.18:continue
+            strength=rng.randrange(50,115)
+            if row%17==head%17:strength=155
+            d.text((x,y),rng.choice(alphabet),font=font,fill=(strength,7 if strength<140 else 22,24))
+    return image
+
+
+class MatrixBackdrop(tk.Frame):
+    """Code pattern in gutters only; all working panels remain solid black."""
+    def __init__(self,parent,**kwargs):
+        super().__init__(parent,bg=BASE,**kwargs)
+        self._background=tk.Canvas(self,bg=BASE,bd=0,highlightthickness=0,takefocus=0)
+        self._background.place(x=0,y=0,relwidth=1,relheight=1)
+        self._background_size=None;self._background_image=None
+        self.bind('<Configure>',self._paint_background,add='+')
+    def _paint_background(self,event):
+        if event.widget is not self:return
+        size=(max(1,event.width),max(1,event.height))
+        if size==self._background_size:return
+        self._background_size=size
+        self._background_image=ImageTk.PhotoImage(_matrix_art(*size))
+        self._background.delete('all');self._background.create_image(0,0,image=self._background_image,anchor='nw')
+        self.tk.call('lower',self._background._w)
+
+
 class Header(tk.Canvas):
     """Approved decorative brand strip, fitted without stretching the artwork."""
     def __init__(self,parent,app,source:Path):
@@ -173,19 +269,7 @@ class Header(tk.Canvas):
         self._source=Image.open(source).convert('RGB')
         self._source=self._source.crop((0,0,self._source.width,self._source.height-4))
         self._gear_source=self._source.crop((1460,14,1543,94))
-        # Reuse the gear's actual rounded red chrome at precisely the same size.
-        self._book_source=self._gear_source.copy()
-        pen=ImageDraw.Draw(self._book_source)
-        for yy in range(12,68):
-            shade=round(22-10*(yy-12)/56)
-            pen.line((13,yy,70,yy),fill=(shade,shade,shade+1))
-        self._language_source=self._book_source.copy()
-        pen.polygon([(41,28),(32,23),(20,23),(20,55),(32,55),(41,60)],fill='#171719',outline='#E4E4E6',width=2)
-        pen.polygon([(42,28),(51,23),(63,23),(63,55),(51,55),(42,60)],fill='#171719',outline='#E4E4E6',width=2)
-        pen.line((41,28,41,60),fill='#A7A7AB',width=2)
-        for yy in (33,41,49):
-            pen.line((25,yy-2,35,yy+1),fill='#B5B5BA',width=1)
-            pen.line((48,yy+1,58,yy-2),fill='#B5B5BA',width=1)
+        self._book_source=_header_control_art('book',self._gear_source.size)
         # Remove the original edge-mounted gear from the decorative background.
         # Reuse clean matrix texture so the banner runs to both window edges.
         self._source.paste(self._source.crop((1377,0,1460,self._source.height)),(1460,0))
@@ -249,19 +333,19 @@ class Header(tk.Canvas):
         self._rail_background=art.copy()
         gw,gh=round(self._gear_source.width*scale),round(self._gear_source.height*scale)
         gx,gy=w-40-gw,round((h-gh)/2)
-        art.paste(self._gear_source.resize((gw,gh),Image.Resampling.LANCZOS),(gx,gy))
+        art=art.convert('RGBA')
+        art.alpha_composite(self._gear_source.convert('RGBA').resize((gw,gh),Image.Resampling.LANCZOS),(gx,gy))
         lx=gx-gw-8
-        art.paste(self._book_source.resize((gw,gh),Image.Resampling.LANCZOS),(lx,gy))
+        art.alpha_composite(self._book_source.resize((gw,gh),Image.Resampling.LANCZOS),(lx,gy))
         sx=lx-gw-8
-        art.paste(self._language_source.resize((gw,gh),Image.Resampling.LANCZOS),(sx,gy))
+        language=getattr(getattr(self.app,'language',None),'code','de')
+        language_art=_header_control_art('language',self._gear_source.size,language)
+        art.alpha_composite(language_art.resize((gw,gh),Image.Resampling.LANCZOS),(sx,gy))
         self._img=ImageTk.PhotoImage(art)
         self.create_image(0,0,anchor='nw',image=self._img)
         self.gear_bounds=(gx,gy,gx+gw,gy+gh)
         self.library_bounds=(lx,gy,lx+gw,gy+gh)
         self.language_bounds=(sx,gy,sx+gw,gy+gh)
-        active=getattr(self.app,'language',None)
-        for code,y in [('de',.33),('en',.68)]:
-            self.create_text(sx+gw/2,gy+gh*y,text=code.upper(),fill=HOT if active and active.code==code else TEXT,font=('Segoe UI',max(10,round(15*scale)),'bold'))
         from tkinter.font import Font
         font=Font(family='Segoe UI',size=-max(10,round(17*scale)),weight='bold')
         vx=round(1030*scale);available=sx-12-vx
@@ -580,13 +664,13 @@ def build_ui(a):
     header.grid(row=0,column=0,sticky='ew')
     BrandRail(root,header).grid(row=1,column=0,sticky='ew')
 
-    body=tk.Frame(root,bg=BASE,padx=16,pady=12)
+    body=MatrixBackdrop(root,padx=16,pady=12)
     body.grid(row=2,column=0,sticky='nsew')
     body.columnconfigure(0,weight=1)
     body.rowconfigure(2,weight=1,minsize=265)
     body.rowconfigure(0,minsize=231)
 
-    top=tk.Frame(body,bg=BASE)
+    top=MatrixBackdrop(body)
     top.grid(row=0,column=0,sticky='nsew',pady=(0,10))
     top.columnconfigure(0,weight=50,uniform='toparea')
     top.columnconfigure(1,weight=28,uniform='toparea')
@@ -618,6 +702,13 @@ def build_ui(a):
                 opacity=min(255,round(255*edge/max(1,pw*.28)))
                 md.line((x,0,x,h),fill=opacity)
             texture.paste(art,(w-pw if right_side else 0,0),mask)
+        # Visible red code at both edges, with a quiet centre behind the title.
+        code=_matrix_art(w,h,83)
+        code_mask=Image.new('L',(w,h));mask_draw=ImageDraw.Draw(code_mask)
+        for x in range(w):
+            edge=abs(2*x/max(1,w-1)-1)
+            mask_draw.line((x,0,x,h),fill=round(35+180*edge**1.6))
+        texture.paste(code,(0,0),code_mask)
         # Dashed rounded crimson perimeter at double resolution for smooth corners.
         border=Image.new('RGBA',(w*2,h*2))
         pen=ImageDraw.Draw(border)
@@ -677,11 +768,16 @@ def build_ui(a):
     prerequisites_head=tk.Frame(right,bg=PANEL)
     prerequisites_head.pack(fill='x',pady=(0,9))
     heading=SectionHeading(prerequisites_head,'VORAUSSETZUNGEN',size=21)
-    heading.pack(side='left',fill='x',expand=True)
+    prerequisites_head.columnconfigure(0,weight=1)
+    prerequisites_head.columnconfigure(1,minsize=38)
+    heading.grid(row=0,column=0,sticky='ew')
     info=tk.Canvas(prerequisites_head,width=28,height=28,bg=PANEL,highlightthickness=0,cursor='hand2',takefocus=1)
-    info.pack(side='right',padx=(4,0))
-    info.create_oval(4,4,24,24,outline=HOT,width=2)
+    info.grid(row=0,column=1,sticky='e',padx=(6,2))
+    a.prerequisites_info_button=info
+    info.create_oval(3,3,25,25,fill='#2B080F',outline=HOT,width=2,tags='ring')
     info.create_text(14,14,text='i',fill=TEXT,font=('Segoe UI',-15,'bold'))
+    info.bind('<Enter>',lambda e:info.itemconfigure('ring',fill='#4A111C',outline='#FF6375'))
+    info.bind('<Leave>',lambda e:info.itemconfigure('ring',fill='#2B080F',outline=HOT))
     info.bind('<ButtonRelease-1>',lambda e:a.show_prerequisites_info())
     info.bind('<Return>',lambda e:a.show_prerequisites_info())
     info.bind('<space>',lambda e:a.show_prerequisites_info())

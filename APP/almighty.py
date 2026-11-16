@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Johanna Joy's THE ALMIGHTY · 3.00 IGNITION | Windows | Anthrazit + Karminrot.
+"""Johanna Joy's THE ALMIGHTY · 2.30 IGNITION | Windows | Anthrazit + Karminrot.
 Prototype, source included. Never overwrites the user's source audio/library.
 """
 from __future__ import annotations
@@ -1271,11 +1271,11 @@ class AppGUI:
         states={k:v.get('state') for k,v in self.stage_status.items()}
         core=[states.get(k,'waiting') for k in ('A','B','M','S','G')]
         if states.get('setup') in ('running','retrying','failed'):
-            text='1 · VORBEREITEN';color=BAD if states['setup']=='failed' else RED_BRIGHT
+            text='PHASE 1 · VORBEREITEN';color=BAD if states['setup']=='failed' else RED_BRIGHT
         elif all(s in ('done','failed','skipped') for s in core):
-            text='3 · PRÜFEN / BEARBEITEN';color=RED_BRIGHT if states.get('KI') in ('running','retrying') else FG
+            text='PHASE 3 · PRÜFEN / BEARBEITEN';color=RED_BRIGHT if states.get('KI') in ('running','retrying') else FG
         elif any(s in ('running','retrying','done','failed') for s in core):
-            text='2 · ERKENNEN';color=RED_BRIGHT
+            text='PHASE 2 · ERKENNEN';color=RED_BRIGHT
         else:text='BEREIT';color=MUTED
         self.phase_label.configure(text=text,fg=color)
 
