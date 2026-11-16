@@ -4,7 +4,7 @@ import ast
 ROOT=Path(__file__).resolve().parents[1]
 CODE=ROOT/'APP'
 modules=['almighty.py','audio_core.py','engine_external.py','local_ai.py','ai_method.py','ai_adaptive.py','ui_ai_review.py','ui_theme.py','ui_workspace.py','ui_text.py','set_library.py','components.py','audfprint_utf8.py','scan_jobs.py','online_requests.py','track_results.py']
-modules += ['ui_lifetime.py','offline_pipeline.py','duplicates.py']
+modules += ['ui_lifetime.py','offline_pipeline.py','duplicates.py','scan_input.py']
 for mod in modules:
     path=CODE/mod
     assert path.is_file(),f'Missing {mod}'

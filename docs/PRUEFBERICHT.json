@@ -1,6 +1,6 @@
 {
-  "version": "1.14.3",
-  "regression_tests": 24,
+  "version": "1.14.4",
+  "regression_tests": 25,
   "passed": true,
   "packaged_program": {
     "ok": true,
@@ -55,5 +55,13 @@
     "sources_and_observations_preserved": true,
     "distinct_remixes_and_replays_preserved": true,
     "gui_library_txt_json_consistent": true
-  }
+  },
+  "one_click_workflow": {
+    "regression": true,
+    "actual_yt_dlp_download": true,
+    "actual_ffmpeg_conversion": true,
+    "real_byte_progress": true,
+    "no_external_upload": true
+  },
+  "google_song_search": "planned_only_not_installed"
 }

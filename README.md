@@ -1,6 +1,10 @@
 # JOHANNA JOY'S THE ALMIGHTY
 
-**Version 1.14.3 · EMBER · Windows x64**
+**Version 1.14.4 · EMBER · Windows x64**
+
+Datei oben auswählen oder Link unten einfügen und einmal **SCANNEN** drücken: Das Set wird automatisch geladen und verarbeitet, anschließend von den parallelen Methoden erkannt und von der lokalen KI nachgeprüft. Echte Download- und Verarbeitungsschritte erscheinen im Fortschritt. Die zuletzt gewählte Quelle hat Vorrang; bereits geladene Links werden bei Einzelprüfungen wiederverwendet.
+
+Google-Songerkennung ist ausschließlich [geplant](docs/GOOGLE_PLAN.md), noch nicht Teil der Anwendung.
 
 Schnellscan und Tiefenscan beginnen mit dem ersten fertig dekodierten Abschnitt. mix-id, Shazam und die KI laufen unabhängig daneben. Der Tiefenscan zeigt den Fortschritt pro Schnipsel statt erst nach einer ganzen Tempo-Variante. Die KI-Nachprüfung führt abgesicherte Dubletten zusammen; Quellen, Methoden und rohe Beobachtungen bleiben erhalten. Unterschiedliche Remixes und spätere erneute Abspielungen bleiben getrennt.
 

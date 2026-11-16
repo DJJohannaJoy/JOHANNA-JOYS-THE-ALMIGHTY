@@ -107,7 +107,7 @@ with fixture_directory() as td:
         app._dropped(SimpleNamespace(data=app.root.tk.call('list',str(sample))))
         assert app.set_path.get()==str(sample)
         app.media_url.set('not a media url')
-        with patch.object(S.messagebox,'showwarning') as warning:
+        with patch.object(app.root,'clipboard_get',return_value='not a media url'),patch.object(S.messagebox,'showwarning') as warning:
             app.link_button._keyboard(None)
             warning.assert_called_once()
         header=next(w for w in app.root.winfo_children() if isinstance(w,Header))

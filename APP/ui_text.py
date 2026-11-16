@@ -3,8 +3,12 @@ import re
 from tkinter import ttk
 
 APP_NAME="JOHANNA JOY'S THE ALMIGHTY"
-VERSION_LABEL='Version 1.14.3 - EMBER'
+VERSION_LABEL='Version 1.14.4 - EMBER'
 TEXT={
+'LINK EINFÜGEN':'PASTE LINK','Link einfügen · YouTube / SoundCloud / Mixcloud':'Paste link · YouTube / SoundCloud / Mixcloud',
+'1 VORBEREITEN · 2 ERKENNEN · 3 PRÜFEN':'1 PREPARE · 2 IDENTIFY · 3 REVIEW',
+'1 · VORBEREITEN':'1 · PREPARE','2 · ERKENNEN':'2 · IDENTIFY','3 · PRÜFEN / BEARBEITEN':'3 · REVIEW / EDIT',
+'Link eingefügt · SCANNEN lädt und verarbeitet das Set automatisch':'Link pasted · SCAN downloads and processes the set automatically',
 'Passende Dateien:':'Matching files:','DATEI ÜBERNEHMEN':'USE FILE','MUSIKORDNER ABGLEICHEN':'MATCH MUSIC FOLDER',
 'ZUORDNUNG LÖSCHEN':'CLEAR ASSIGNMENT','Musikordner zum Abgleichen auswählen':'Choose a music folder to match',
 'Musikordner wird abgeglichen …':'Matching music folder …','Audiodateien abgeglichen':'audio files checked',

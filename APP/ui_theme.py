@@ -664,11 +664,12 @@ def build_ui(a):
     lentry=a._entry(linkbox,a.media_url)
     lentry.configure(font=('Segoe UI',11),bg=FIELD,highlightthickness=0)
     lentry.pack(side='left',fill='both',expand=True,ipady=8)
-    placeholder(lentry,a.media_url,'YOUTUBE / SOUNDCLOUD / MIXCLOUD')
-    load=BloodButton(links,'LINK LADEN',a.start_download,width=198,height=41,font_size=13)
+    placeholder(lentry,a.media_url,'Link einfügen · YouTube / SoundCloud / Mixcloud')
+    load=BloodButton(links,'LINK EINFÜGEN',a.paste_link,width=198,height=41,font_size=13)
     load.grid(row=0,column=1,sticky='nsew',padx=(13,0))
     a.file_button=browse
     a.link_button=load
+    a.file_entry=fentry;a.link_entry=lentry
 
     right_wrap,right=card(top,10,5,desired_height=231)
     right_wrap.grid(row=0,column=1,sticky='nsew',padx=(0,10))
@@ -740,6 +741,8 @@ def build_ui(a):
     flow_path.rowconfigure(1,weight=1)
     flowhead=tk.Frame(flow_path,bg=PANEL);flowhead.grid(row=0,column=0,sticky='ew')
     label(flowhead,'ABLAUF',14,'bold').pack(side='left')
+    a.phase_label=label(flowhead,'1 VORBEREITEN · 2 ERKENNEN · 3 PRÜFEN',9,color=MUTE)
+    a.phase_label.pack(side='right',padx=(8,20))
     nodes=tk.Frame(flow_path,bg=PANEL)
     nodes.grid(row=1,column=0,sticky='ew',padx=(0,20))
     stagespec=[('setup','DATEIEN\nVORBEREITEN'),('A','SCHNELLSCAN'),

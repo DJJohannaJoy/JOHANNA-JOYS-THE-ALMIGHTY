@@ -6,8 +6,8 @@ using System.Text;
 using System.Windows.Forms;
 [assembly: AssemblyTitle("JOHANNA JOY'S THE ALMIGHTY")]
 [assembly: AssemblyProduct("JOHANNA JOY'S THE ALMIGHTY")]
-[assembly: AssemblyVersion("1.14.3.0")]
-[assembly: AssemblyFileVersion("1.14.3.0")]
+[assembly: AssemblyVersion("1.14.4.0")]
+[assembly: AssemblyFileVersion("1.14.4.0")]
 internal static class AlmightyLauncher {
     private static readonly object LogLock = new object();
     private static void Record(string path,string message) {

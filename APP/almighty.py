@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Johanna Joy's THE ALMIGHTY · 1.14.3 EMBER | Windows | Anthrazit + Karminrot.
+"""Johanna Joy's THE ALMIGHTY · 1.14.4 EMBER | Windows | Anthrazit + Karminrot.
 Prototype, source included. Never overwrites the user's source audio/library.
 """
 from __future__ import annotations
@@ -222,7 +222,7 @@ def media_provider(url: str) -> str | None:
     return None
 
 
-def download_online(url: str, cfg: dict, cancel: threading.Event, log) -> Path:
+def download_online(url: str, cfg: dict, cancel: threading.Event, log, progress=None) -> Path:
     provider = media_provider(url)
     if not provider:
         raise RuntimeError('Bitte einen YouTube-, SoundCloud- oder Mixcloud-Link eingeben.')
@@ -234,8 +234,16 @@ def download_online(url: str, cfg: dict, cancel: threading.Event, log) -> Path:
     env = C.env_with_ffmpeg(cfg['ffmpeg_dir'])
     # --no-playlist: one set/track, never silently download a whole account/playlist.
     cmd = [sys.executable, '-m', 'yt_dlp', '--no-playlist', '--extract-audio',
-           '--audio-format', 'mp3', '--no-progress', '--output', template, url]
-    code, result = C.run_cmd(cmd, env, cancel=cancel, echo=True, log=log)
+           '--audio-format', 'mp3', '--newline', '--progress',
+           '--progress-template', 'download:ALMIGHTY_DOWNLOAD:%(progress.downloaded_bytes)s:%(progress.total_bytes)s:%(progress.total_bytes_estimate)s',
+           '--progress-template', 'postprocess:ALMIGHTY_PROCESS:%(progress.status)s', '--output', template, url]
+    def line(value):
+        from scan_input import download_progress
+        update=download_progress(value)
+        if progress and update:progress(*update)
+        elif not value.startswith(('ALMIGHTY_DOWNLOAD:','ALMIGHTY_PROCESS:')):log(value)
+    code, result = C.run_cmd(cmd, env, cancel=cancel, echo=True, log=line)
+    if cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
     if code != 0:
         raise RuntimeError(f'{provider}-Link konnte nicht geladen werden (Login, Sperre oder Format): ' + result[-800:])
     candidates = sorted(temp.glob('*.mp3'), key=lambda p: p.stat().st_mtime)
@@ -266,6 +274,9 @@ class AppGUI:
         self.library = tk.StringVar(value=self.cfg.get('library') or C.DEFAULT_LIBRARY)
         self.set_path = tk.StringVar(value='')
         self.media_url = tk.StringVar(value='')
+        self._input_kind='file';self._download_cache={}
+        self.set_path.trace_add('write',lambda *args:self._select_input('file'))
+        self.media_url.trace_add('write',lambda *args:self._select_input('link'))
         self.use_shazam = tk.BooleanVar(value=bool(self.cfg.get('shazam', True)))
         self.pitch = tk.BooleanVar(value=bool(self.cfg.get('tempo_pitch', False)))
         self.exhaustive_tempo = tk.BooleanVar(value=bool(self.cfg.get('exhaustive_tempo',False)))
@@ -441,6 +452,7 @@ class AppGUI:
         self.stagebar.redraw()
         if detail and state in ('running','retrying','failed','paused'):
             self.progress.set(detail)
+        self._phase_ui()
 
     def _events(self):
         redraw_needed=False
@@ -502,6 +514,8 @@ class AppGUI:
                 elif kind=='ai_status':
                     self.ai_status_text.set(str(event[1]))
                     if len(event)<3 or not event[2]:messagebox.showinfo('Lokale KI · Status',str(event[1]))
+                elif kind=='scan_input':
+                    self.set_path.set(str(event[1]));self._download_cache[event[2]]=str(event[1]);self._input_kind='link'
                 elif kind=='set_path':
                     self.set_path.set(str(event[1]))
                 elif kind=='scan_finished':
@@ -691,7 +705,7 @@ class AppGUI:
         if getattr(self,'_scan_archive_pending',False):scan={**scan,'report':'','started_at':self._active_scan_started}
         snapshot={**scan,'results':{**scan.get('results',{}),'observations':list(self.raw_hits.values())}}
         try:
-            path=SL.save_snapshot(C.DATA/'Set-Bibliothek',snapshot,sorted(self.current_hits.values(),key=lambda t:t.get('time',0)),self.media_url.get(),{'tasks':dict(self.progress_tasks),'states':dict(self.stage_status)})
+            path=SL.save_snapshot(C.DATA/'Set-Bibliothek',snapshot,sorted(self.current_hits.values(),key=lambda t:t.get('time',0)),getattr(self,'_scan_source_url',self.media_url.get()),{'tasks':dict(self.progress_tasks),'states':dict(self.stage_status)})
             if not quiet:self.progress.set('In der Set-Bibliothek gespeichert')
             return path
         except OSError as exc:
@@ -705,8 +719,12 @@ class AppGUI:
         self.save_current_set(quiet=True)
         self.raw_hits.clear();self.current_hits.clear();self.set_path.set('');self.progress_tasks.clear()
         if self.restore_last_scan(item['entry_path']):
-            self.media_url.set(item.get('source_url',''));self._set_workspace_empty(False);return True
+            self.media_url.set(item.get('source_url',''));self._scan_source_url=self.media_url.get()
+            if self.media_url.get():self._download_cache[self.media_url.get()]=self.set_path.get()
+            self._set_workspace_empty(False);return True
         self.set_path.set(item.get('file',''));self._scan_path=item.get('file','')
+        self.media_url.set(item.get('source_url',''));self._scan_source_url=self.media_url.get()
+        if self.media_url.get():self._download_cache[self.media_url.get()]=self.set_path.get()
         self._ai_findings=item.get('ai_review') or {}
         self._render_hits(item.get('observations') or item.get('tracks',[]))
         self.progress.set('Gespeicherte Titelliste geladen · Audiodatei bei Bedarf neu zuweisen')
@@ -875,6 +893,8 @@ class AppGUI:
 
     def _running(self,state):
         self.running=state
+        for entry in (self.file_entry,self.link_entry):entry.configure(state='disabled' if state else 'normal')
+        for button in (self.file_button,self.link_button):button.configure(state='disabled' if state else 'normal')
         self.start_button.configure(state='disabled' if state else 'normal')
         self.index_button.configure(state='disabled' if state else 'normal')
         self.retry_button.configure(state='disabled' if state else 'normal')
@@ -1201,26 +1221,47 @@ class AppGUI:
             return 'Datenbank fertig! Jetzt DJ-Set auswählen und SCANNEN klicken.'
         self._launch(job)
 
-    def start_download(self):
-        link=self.media_url.get().strip()
+    def _select_input(self,kind):
+        value=self.media_url.get().strip() if kind=='link' else self.set_path.get().strip()
+        self._input_kind=kind if value else ('file' if kind=='link' else 'link')
+
+    def paste_link(self):
+        if self.running:return
+        try:link=self.root.clipboard_get().strip()
+        except tk.TclError:link=''
         if not media_provider(link):
-            messagebox.showwarning('Link','Bitte einen gültigen YouTube-, SoundCloud- oder Mixcloud-Link eingeben.')
+            messagebox.showwarning('Link','Bitte einen gültigen YouTube-, SoundCloud- oder Mixcloud-Link kopieren.')
             return
-        def job(cfg):
-            self._notify('stage','setup','running','Online-Audio wird geladen')
-            file=download_online(link,cfg,self.cancel,lambda msg:self._notify('log',msg))
-            self.events.put(('set_path',str(file)))
-            self._notify('stage','setup','done','Online-Audio geladen')
-            return f'Datei gespeichert: {file}\nJetzt SCANNEN starten.'
-        self._launch(job)
+        self.media_url.set(link)
+        self.progress.set('Link eingefügt · SCANNEN lädt und verarbeitet das Set automatisch')
+
+    def start_download(self):
+        # Compatibility for old shortcuts: there is only one scan workflow.
+        self.start_scan()
+
+    def _phase_ui(self):
+        if not hasattr(self,'phase_label'):return
+        states={k:v.get('state') for k,v in self.stage_status.items()}
+        core=[states.get(k,'waiting') for k in ('A','B','M','S')]
+        if states.get('setup') in ('running','retrying','failed'):
+            text='1 · VORBEREITEN';color=BAD if states['setup']=='failed' else RED_BRIGHT
+        elif all(s in ('done','failed','skipped') for s in core):
+            text='3 · PRÜFEN / BEARBEITEN';color=RED_BRIGHT if states.get('KI') in ('running','retrying') else FG
+        elif any(s in ('running','retrying','done','failed') for s in core):
+            text='2 · ERKENNEN';color=RED_BRIGHT
+        else:text='1 VORBEREITEN · 2 ERKENNEN · 3 PRÜFEN';color=MUTED
+        self.phase_label.configure(text=text,fg=color)
 
     def start_scan(self,stages=None):
         if self.running:return
-        path=Path(self.set_path.get().strip())
-        if not path.is_file():
+        from scan_input import resolve
+        try:path,link=resolve(self.set_path.get().strip(),self.media_url.get().strip(),self._input_kind,self._download_cache,media_provider)
+        except ValueError as exc:
+            messagebox.showwarning('Link',str(exc));return
+        if path is None and not link:
             self.pick_set()
             path=Path(self.set_path.get().strip())
-        if not path.is_file():return
+            if not path.is_file():return
         self._set_workspace_empty(False)
         if stages is None and self._resume_pending and self.last_scan and self.last_scan['path']==str(path):
             stages=set(self._resume_pending)
@@ -1239,7 +1280,8 @@ class AppGUI:
         self.save_current_set(quiet=True)
         if self._ai_worker:self._ai_worker.abort();self._ai_worker=None
         self._ai_findings={};self._ai_by_track={}
-        self._scan_path=str(path)
+        self._scan_source_url=link
+        self._scan_path=str(path) if path else ''
         self._active_scan_started=dt.datetime.now().isoformat(timespec='microseconds');self._scan_archive_pending=True
         if previous is None:
             self.last_scan=None
@@ -1253,17 +1295,31 @@ class AppGUI:
                 if key.split('/')[0] in selected | {'setup','E','KI'}:del self.progress_tasks[key]
             for key in selected | {'setup','E'}:self._stage_ui(key,'waiting','Erneut prüfen')
         def job(cfg):
+            nonlocal path
             self._resume_pending=set()
-            self._notify('stage_progress','setup',0,2,'Datei und Offline-Engine prüfen')
+            self._notify('stage','setup','running','Phase 1 · Set vorbereiten')
+            self._notify('stage_progress','setup',0,100,'Datei und Offline-Engine prüfen')
+            if path is None:
+                def downloading(key,done,total,detail):
+                    self._notify('stage_progress',key,done,total,detail)
+                    if key=='setup/download' and total>0:
+                        self._notify('stage_progress','setup',80*min(1,done/total),100,detail)
+                try:path=download_online(link,cfg,self.cancel,lambda msg:self._notify('log',msg),progress=downloading)
+                except Exception as exc:
+                    self._notify('stage','setup','failed',str(exc));raise
+                if self.cancel.is_set():raise RuntimeError('Scan wurde abgebrochen.')
+                self._scan_path=str(path)
+                self._notify('scan_input',str(path),link)
+                self._notify('stage_progress','setup',90,100,'Download und Audio-Verarbeitung abgeschlossen')
             if cfg.get('local_ai_review') and stages is None:self._notify('stage_progress','KI',0,1,'Lokale KI · wartet auf Bericht')
             if selected & {'A','B'}:C.install_engine(cfg,lambda msg:self._notify('log',msg))
-            self._notify('stage_progress','setup',1,2,'Set-Länge lesen')
+            self._notify('stage_progress','setup',90 if link else 50,100,'Set-Länge lesen')
             env=C.env_with_ffmpeg(cfg['ffmpeg_dir'])
             self._notify('stage','setup','running','Set-Länge und Dateien prüfen')
             duration=C.get_duration(path,env)
             self._notify('log',f'{path.name} | Dauer: {C.hhmmss(duration)}')
             self._notify('stage','setup','done','Datei bereit · '+C.hhmmss(duration))
-            self._notify('stage_progress','setup',2,2,'Datei bereit · '+C.hhmmss(duration))
+            self._notify('stage_progress','setup',100,100,'Datei bereit · '+C.hhmmss(duration))
             audit=None;offline_pending=set(selected & {'A','B'})
             if cfg.get('local_ai_method',False):
                 audit=self._start_audit(path,cfg,duration,previous['results']['observations'] if previous else (),self.cancel,False)
@@ -1345,7 +1401,7 @@ class AppGUI:
         self._scan_path=None;self._scan_archive_pending=False;self._active_scan_started=None
         self.raw_hits.clear();self.current_hits.clear();self._hit_rows={};self._received_order=0
         self.progress_tasks.clear();self.stage_status.clear()
-        self.set_path.set('');self.media_url.set('');self.ai_review_path=None
+        self.set_path.set('');self.media_url.set('');self.ai_review_path=None;self._scan_source_url='';self._download_cache.clear()
         while True:
             try:self.events.get_nowait()
             except queue.Empty:break
