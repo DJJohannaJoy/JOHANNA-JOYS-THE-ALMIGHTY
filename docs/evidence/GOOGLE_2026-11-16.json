@@ -1,0 +1,108 @@
+{
+  "date": "2026-11-16",
+  "scope": "research_and_setup_design_only",
+  "app_key_obtained": false,
+  "independent_google_recognition_verified": false,
+  "emulator_installed": false,
+  "humtosong_commit": "7e0e5c8daf956a6781df247e8337bac7fbeeefd1",
+  "humtosong_issues_found": 0,
+  "observed_phone_capture": {
+    "normal_song_search_works_without_reqable": true,
+    "captured_method": "CONNECT",
+    "captured_status": "Aborted",
+    "visible_request_bytes": 241,
+    "visible_s3bidi_headers": false,
+    "precise_tls_failure_not_proven": true
+  },
+  "official_package_metadata": {
+    "repository": [
+      {
+        "package": "cmdline-tools;latest",
+        "revision": "23.0.0",
+        "bytes": 154957218,
+        "url": "https://dl.google.com/android/repository/commandlinetools-win-16111833_latest.zip",
+        "checksum": "57d04f2d75eb8e8fffc5000a987e5de4b5a63e9d",
+        "checksum_type": null
+      },
+      {
+        "package": "platform-tools",
+        "revision": "37.0.1",
+        "bytes": 8044989,
+        "url": "https://dl.google.com/android/repository/platform-tools_r37.0.1-win.zip",
+        "checksum": "e03e78b1d80b396f1c3358e31251cb31740e1110",
+        "checksum_type": null
+      },
+      {
+        "package": "emulator",
+        "revision": "37.2.13",
+        "bytes": 455344678,
+        "url": "https://dl.google.com/android/repository/emulator-windows_x64-16740729.zip",
+        "checksum": "4d7268aa7787c640ad892844e6c9a5f159e91ad3",
+        "checksum_type": null
+      }
+    ],
+    "images": [
+      {
+        "package": "system-images;android-36;google_apis;x86_64",
+        "revision": "7.0.0",
+        "bytes": 1895447397,
+        "url": "https://dl.google.com/android/repository/sys-img/google_apis/x86_64-36_r07.zip",
+        "checksum": "c6bf44bdcd885bb902b4ba752d111a073ad7a817",
+        "checksum_type": null
+      },
+      {
+        "package": "system-images;android-35;google_apis;x86_64",
+        "revision": "9.0.0",
+        "bytes": 1738815903,
+        "url": "https://dl.google.com/android/repository/sys-img/google_apis/x86_64-35_r09.zip",
+        "checksum": "0103e6dab21290c4b9d16550a3ce99476f884eef",
+        "checksum_type": null
+      },
+      {
+        "package": "system-images;android-33;google_apis;x86_64",
+        "revision": "17.0.0",
+        "bytes": 1707857511,
+        "url": "https://dl.google.com/android/repository/sys-img/google_apis/x86_64-33_r17.zip",
+        "checksum": "2b96f5bd5c79bfe1cc645e70b3e630b5755d9711",
+        "checksum_type": null
+      },
+      {
+        "package": "system-images;android-34;google_apis;x86_64",
+        "revision": "14.0.0",
+        "bytes": 1563721130,
+        "url": "https://dl.google.com/android/repository/sys-img/google_apis/x86_64-34_r14.zip",
+        "checksum": "e0f6c9a0691aa27bd597d0deb1bcfdc943ac8ca7",
+        "checksum_type": null
+      }
+    ]
+  },
+  "sources": [
+    "https://github.com/niizam/humtosong/tree/7e0e5c8daf956a6781df247e8337bac7fbeeefd1",
+    "https://github.com/chromium/chromium/blob/main/components/cronet/tracing.md",
+    "https://developer.android.com/studio/run/managing-avds",
+    "https://developer.android.com/privacy-and-security/security-config",
+    "https://developer.android.com/tools/adb",
+    "https://developer.android.com/tools/apkanalyzer",
+    "https://developer.android.com/tools/apksigner",
+    "https://android.googlesource.com/platform/prebuilts/android-emulator/+/refs/heads/main/linux-x86_64/lib/emulator_controller.proto",
+    "https://reqable.com/en-US/docs/getting-started/installation/",
+    "https://docs.cloud.google.com/docs/authentication/api-keys",
+    "https://grpc.io/docs/guides/status-codes/"
+  ],
+  "keyless_access_probe": {
+    "date": "2026-11-16",
+    "endpoint": "Google Song Search S3Bidi",
+    "requests": 1,
+    "api_key_sent": false,
+    "oauth_sent": false,
+    "cookies_sent": false,
+    "user_audio_sent": false,
+    "fixture": "self-generated 1-second 440 Hz tone",
+    "independent_song_identification_test": false,
+    "http_status": 200,
+    "grpc_status": "7",
+    "response_bytes": 0,
+    "error_markers": []
+  },
+  "shared_app_credential_reusability_verified": false
+}

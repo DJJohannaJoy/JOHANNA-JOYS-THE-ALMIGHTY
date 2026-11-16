@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-16",
+  "endpoint": "Google Song Search S3Bidi",
+  "requests": 1,
+  "api_key_sent": false,
+  "oauth_sent": false,
+  "cookies_sent": false,
+  "user_audio_sent": false,
+  "fixture": "self-generated 1-second 440 Hz tone",
+  "independent_song_identification_test": false,
+  "http_status": 200,
+  "grpc_status": "7",
+  "response_bytes": 0,
+  "error_markers": []
+}

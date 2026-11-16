@@ -1,18 +1,18 @@
-# Google-Songerkennung – Plan, noch nicht eingebaut
+# Google-Songerkennung – aktualisierter Plan
 
-Stand: 16.11.2026. Der Nutzer hat ein Android-Handy mit funktionierender Google-Songsuche. Die frühere Recherche wurde wieder aufgenommen; eigene Google-App-Zugangsdaten wurden bisher nicht erfasst. Google bleibt ausdrücklich außerhalb dieser Programmversion.
+Stand: 16.11.2026. **Google ist nicht in ALMIGHTY eingebaut. Es wurde noch kein eigener funktionierender App-Key gewonnen.**
 
-## Praktischer Weg
+Der Versuch auf dem normalen Android-Handy ist in der getesteten Reqable-Konfiguration gescheitert: Ohne Aufzeichnung funktioniert die Songsuche, mit Aufzeichnung entstehen abgebrochene CONNECT-Verbindungen. Das genaue TLS-Problem ist nicht bewiesen; die Fotos zeigen keine entschlüsselte S3Bidi-Anfrage.
 
-1. Einen kurzen Test auf dem vorhandenen Android-Handy durchführen. Eine eigene Songsuche der Google-App aufzeichnen und die vier von humtosong benötigten Header lokal übernehmen: App-Key, Android-Paket, Zertifikat-Fingerabdruck und User-Agent. Keine Konto-Cookies oder Passwörter anfordern; Aufzeichnung auf diese eigene Anfrage begrenzen. Die Erfassungsmöglichkeit muss zuerst am konkreten Handy geprüft werden, da App-Version und Zertifikatsprüfung sie beeinflussen können.
-2. Den quelloffenen MIT-Client [niizam/humtosong](https://github.com/niizam/humtosong) prüfen, auf einen konkreten Commit festlegen und für Windows als EXE bauen. FFmpeg ist bereits in ALMIGHTY enthalten. Android wird nach diesem Ansatz für die einmalige Erfassung benötigt; die spätere Erkennung läuft vom Windows-PC aus, ohne Android-Emulator. Go ist nur zum Bauen nötig.
-3. Zuerst einen echten bekannten Audioclip und einen unbekannten Clip testen: Treffer, Kein-Treffer, Zugang abgelehnt, Zeitüberschreitung und Abbruch sauber unterscheiden. Erst nach diesem Nachweis als separate optionale Google-Methode einbauen. Zugangsdaten bleiben im privaten Datenordner, niemals in Git, Downloads oder Protokollen.
-4. Im späteren ALMIGHTY-Adapter zunächst nur Lücken nach den vorhandenen Methoden prüfen. Maximal zwei kurze Ausschnitte gleichzeitig, Ergebnisse zwischenspeichern, echte Prozent-/Schnipselangaben und einzelnes Wiederholen unterstützen. Google als eigenen Katalog in der Quellenspalte nennen. Vorhandene Titel nicht ohne Belege ersetzen; Dubletten und Versionen mit den übrigen Ergebnissen abgleichen.
+**Kein Google-Login heißt nicht keine App-Kennung.** Der untersuchte Client nutzt einen App-Key, aber kein OAuth und keine Konto-Cookies. Es ist nicht belegt, dass jeder Nutzer eigene Werte erfassen muss. Das bevorzugte Ziel ist ein auf Entwicklerseite geprüfter Zugang, den der Nutzer nur aktiviert. Gemeinsame Wiederverwendbarkeit ist noch zu testen.
 
-## Nachweis und Grenzen
+Ein eigener einzelner Aufruf ohne App-Key, Android-Identitätsheader und Konto-Anmeldung lieferte HTTP 200 mit gRPC 7 / PERMISSION_DENIED. Verwendet wurde nur ein selbst erzeugter Testton. Damit ist dieser nackte Aufruf gescheitert; die genaue fehlende Voraussetzung lässt sich aus dem Status allein nicht bestimmen. [Testprotokoll](evidence/GOOGLE_KEYLESS_PROBE_2026-11-16.json).
 
-Der ursprüngliche Client beschreibt Windows-Builds, einen lokalen HTTP-Server und eine Datei-Schnittstelle. Er sendet Audio über Googles privates HTTP/2-gRPC-Protokoll. Laut Autor gelangen Musikdateien zu Google, ohne OAuth-Konto-Token; ein beliebiger Google-Cloud-Key ist nicht als funktionierend belegt. Die dokumentierten Live-Tests stammen vom Autor, nicht von diesem ALMIGHTY-Projekt.
+Die ursprüngliche Annahme, dass eine einfache Benutzerzertifikat-Installation auf jedem Android-Gerät genügt, ist kein tragfähiger Einsteigerweg. Der Entwickler-Prototyp soll stattdessen eine isolierte Android-Testumgebung und interne Cronet-Netzwerkdiagnose prüfen, ohne Zertifikatsaustausch. Eine direkte Auswertung der unveränderten Google-App-Datei ist eine zusätzliche, noch unbewiesene Abkürzung. Ein geführter PC-Assistent für jeden Nutzer ist erst dann sinnvoll, wenn sich installationsbezogene Werte als notwendig erweisen.
 
-Das ist keine offiziell freigegebene öffentliche Musikerkennungs-API. Dauerhafte Verfügbarkeit, erlaubte Automatisierung und kostenlose Kontingente sind nicht zugesichert. Keine erfundenen Header oder fremden Keys verwenden, keine Dienstsperren umgehen. Ohne eigenen erfolgreichen Verbindungstest keine fertige Google-Erkennung behaupten oder grüne Bereitschaft anzeigen.
+- [Deep Dive: belegte Möglichkeiten, Grenzen, Größen und technische Abnahme](GOOGLE_DEEP_DIVE.md)
+- [Entwurf des einfachen Nutzerablaufs](GOOGLE_SETUP_EINFACH.md)
 
-Primärquelle: [Projekt-README und Protokollbeschreibung](https://github.com/niizam/humtosong/blob/main/README.md). Hintergrund: [Google Research – Music Recognition](https://research.google/blog/googles-next-generation-music-recognition/).
+Zuerst müssen Google-App, Diagnose und ein echter Windows-Erkennungstest gemeinsam funktionieren. Erst dann wird daraus eine Google-Methode in ALMIGHTY. Die bestehende Anwendung bleibt bis dahin bei ihren vorhandenen Erkennungsmethoden. Ein beliebiger Cloud-/Gemini-Key ist nicht als Zugang zu diesem privaten Dienst belegt.
+
+Der untersuchte Windows-Client ist [humtosong, Quellstand 7e0e5c8](https://github.com/niizam/humtosong/tree/7e0e5c8daf956a6781df247e8337bac7fbeeefd1). Die neue Diagnosemöglichkeit steht in [Chromiums Originaldokumentation](https://github.com/chromium/chromium/blob/main/components/cronet/tracing.md#gathering-unredacted-netlogs).
